@@ -9,6 +9,7 @@
 #include "my_vector.hpp"
 #include "my_curve.hpp"
 #include "lsh.hpp"
+#include "init_k++.hpp"
 
 using namespace std;
 
@@ -41,7 +42,7 @@ int main(){
     i.print_vec();
   #endif
 
-  list <my_vector>* centers=initialization1(data,k);//-----------initialization1
+  list <my_vector>* centers=initialization2(data,k);//-----------initialization1
 
   list<my_vector*> *old_clusters;
   list<my_vector*> *clusters;
