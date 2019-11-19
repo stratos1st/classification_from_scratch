@@ -13,6 +13,50 @@
 
 using namespace std;
 
+list <pair<unsigned int,unsigned int>>* MinMatching( my_curve& x, my_curve& y){// returns the indexes of the oprtimal solution starting at 1,1 and ending at n,m always
+  unsigned int n=x.numofvectors,m=y.numofvectors;
+  double OptValue [n+1][m+1];  // where the value of Dtw will be stored
+  pair<unsigned int,unsigned int> OptSol [n+1][m+1];  // where the bestmatching of Dtw will be stored
+  list <pair<unsigned int,unsigned int>>* result=new list<pair<unsigned int,unsigned int>>;
+  // initializing outer shells of OptValue with infinity
+  OptValue[0][0]=0;
+  for(unsigned int i=1;i<=n;i++)
+    OptValue[i][0]=numeric_limits<float>::infinity();
+  for(unsigned int i=1;i<=m;i++)
+    OptValue[0][i]=numeric_limits<float>::infinity();
+  //implementing the iterative algorithm to fill OptValue
+  for(unsigned int i=1;i<=n;i++)
+    for(unsigned int j=1;j<=m;j++){
+      if(OptValue[i-1][j-1]<=OptValue[i-1][j] && OptValue[i-1][j-1]<=OptValue[i][j-1]){
+        OptSol[i][j].first = i-1;
+        OptSol[i][j].second = j-1;
+      }
+      else if(OptValue[i][j-1]<OptValue[i-1][j] && OptValue[i][j-1]<OptValue[i-1][j-1]){
+        OptSol[i][j].first = i;
+        OptSol[i][j].second = j-1;
+      }
+      else if(OptValue[i-1][j]<OptValue[i][j-1] && OptValue[i-1][j]<OptValue[i-1][j-1]){
+        OptSol[i][j].first = i-1;
+        OptSol[i][j].second = j;
+      }
+      else{
+        cout<<"error"<<endl;
+      }
+      OptValue[i][j]=min(min(OptValue[i][j-1],OptValue[i-1][j]),OptValue[i-1][j-1])+manhattan_distance(x.get_vector(i-1), y.get_vector(j-1));
+    }
+  //saving one of the optimal traversals into the result - not in reverse order
+  unsigned int i = n,j=m ,tempi;
+  pair<unsigned int ,unsigned int> last_pos(i,j);
+  result->push_front(last_pos);
+  while (i!=1 || j!=1) {
+    result->push_front(OptSol[i][j]);
+    tempi=OptSol[i][j].first;
+    j=OptSol[i][j].second;
+    i=tempi;
+  }
+  return result;
+}
+
 double Dtw( my_curve& x, my_curve& y, double(*distance_metric)(my_vector&, my_vector&)){
   unsigned int n=x.numofvectors,m=y.numofvectors;
   double OptValue [n+1][m+1];  // where the value of Dtw will be stored
@@ -35,6 +79,8 @@ double manhattan_distance(my_vector& a, my_vector& b){
   double ans=0.0;
   if(a.get_dimentions()!=b.get_dimentions()){
     cerr<<"\n\n!!manhattan_distance dimentions ERROR!!\n\n";
+    a.print_vec();
+    b.print_vec();
     exit(1);
   }
   for(unsigned int i=0;i<a.get_dimentions();i++)

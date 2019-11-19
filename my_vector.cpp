@@ -12,6 +12,7 @@ my_vector::my_vector(unsigned int dimentions){
   #endif
   coordinates=new double[dimentions];
   dim=dimentions;
+  id=0;
   // for(unsigned int i=0;i<get_dimentions();i++)
   //   coordinates[i]=0.0;
 }
@@ -26,6 +27,8 @@ my_vector::~my_vector(){
 my_vector& my_vector::operator=(const my_vector &other){
   if(get_dimentions()!=other.get_dimentions()){
     cerr<<"\n\n!! ERROR my_vector coppy construstor !!\n\n";
+    print_vec();
+    other.print_vec();
     exit(1);
   }
 
@@ -53,7 +56,7 @@ unsigned int my_vector::get_dimentions() const{
   return dim;//sizeof(coordinates)/sizeof(coordinates[0]);
 }
 
-void my_vector::print_vec(unsigned int until){
+void my_vector::print_vec(unsigned int until) const{
   cout<<get_dimentions()<<"d vector "<<id<<" = ";
   if(until>get_dimentions()){
     cerr<<"!! ERROR print_vec";

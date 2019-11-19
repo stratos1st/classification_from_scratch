@@ -5,10 +5,12 @@
 #include <string>
 
 #include "my_curve.hpp"
+#include "my_vector.hpp"
 
 extern double manhattan_distance(my_vector& a, my_vector& b);
 extern double Dtw( my_curve& x, my_curve& y,
                 double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
+extern std::list <std::pair<unsigned int,unsigned int>>* MinMatching( my_curve& x, my_curve& y);
 extern std::list <my_vector>* read_vector_file(std::string name);
 template <typename T>
 extern T modpow(T base, T exp, T modulus);
