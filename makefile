@@ -3,8 +3,8 @@ CGLAG=  -ggdb -g -m64 -O0
 
 all: main
 
-main: main.o util.o my_curve.o my_vector.o lsh.o g_i.o h_i.o GridHash.o
-	$(CC) $(CFLAG) -o main main.o util.o my_curve.o my_vector.o lsh.o g_i.o h_i.o GridHash.o
+main: main.o util.o my_curve.o my_vector.o lsh.o g_i.o h_i.o GridHash.o init_k++.o
+	$(CC) $(CFLAG) -o main main.o util.o my_curve.o my_vector.o lsh.o g_i.o h_i.o GridHash.o init_k++.o
 
 main.o: main.cpp
 	$(CC) -c main.cpp
@@ -30,6 +30,10 @@ g_i.o: g_i.cpp g_i.hpp my_vector.o
 h_i.o: h_i.cpp h_i.hpp my_vector.o
 	$(CC) -c h_i.cpp
 
+init_k++.o:	init_k++.hpp init_k++.cpp
+		$(CC) $(CFLAG)	-c	init_k++.cpp
+
+
 .PHONY: clean
 clean:
-	rm -f mian main.o my_curve.o util.o my_vector.o lsh.o GridHash.o g_i.o h_i.o
+	rm -f main main.o my_curve.o util.o my_vector.o lsh.o GridHash.o g_i.o h_i.o init_k++.o

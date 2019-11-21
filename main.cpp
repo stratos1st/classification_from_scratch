@@ -11,6 +11,7 @@
 #include "my_vector.hpp"
 #include "my_curve.hpp"
 #include "lsh.hpp"
+#include "init_k++.hpp"
 
 using namespace std;
 
