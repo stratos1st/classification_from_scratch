@@ -178,6 +178,9 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
   exit(0);
   return clusters;
 }
+//filippos was here
+void vectorizeandsilhouette(list<my_vector*>* lclusters,list<my_vector>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
+void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
 
 int main(){
   srand (time(NULL));
@@ -202,8 +205,7 @@ int main(){
   // list<my_curve*> *old_clusters;
   // list<my_curve*> *clusters;
 
-
-  list <my_vector>* data=read_vector_file("./test.txt");
+  list <my_vector>* data=read_vector_file("./Input/test.txt");
 
   lsh_vector *lsh_model=new lsh_vector(data->front().get_dimentions(),5,5,4,4);
   lsh_model->train(data);
@@ -288,6 +290,7 @@ int main(){
 
     iteration++;
   }
+  vectorizeandsilhouette(clusters,centers,centers->size(),data->size());
 
   cout<<"\n\nEND!!\n\n";
 
@@ -640,4 +643,149 @@ double list_diff(list<my_vector> *list1, list<my_vector> *list2){
     i++;
   }
   return maxx;
+}
+
+
+
+void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)){
+  double *a= new double[n];
+  double *b= new double[n];
+  unsigned int clustersize = 0;
+  unsigned int i = 0;//this is for a[i]
+  unsigned int r = 0;//this is for b[r]
+  double *clustercoef = new double[k];
+  double **distarray;
+  for (unsigned int x  = 0; x < n; x++) {
+    b[x] = 0.0;
+    a[x] = 0.0;
+  }
+  for (unsigned int x  = 0; x < k; x++) {
+    clustercoef[x] = 0.0;
+  }
+
+  //NearestC & 2ndNearestC
+  for(unsigned int j=0; j<k; j++){//take a center and its cluster(they sould be sync)
+
+    clustersize = clusters[j].size();
+    #if DEBUG
+      std::cout << "j="<<j<<"k="<<k <<"i,r = "<<i<<","<<r <<"size="<<clustersize<<"with center"<<(*centers)[j].id<< '\n';
+    #endif
+
+    //create lower triangular matrix
+    distarray = new double* [clustersize-1];//create distance array:for cluster
+    if(distarray == NULL)
+      std::cout << "bad allocate" << '\n';
+    for (unsigned int v = 0; v<clustersize-1; v++) {//z:0->clustersize-2 , lenght clustersize-1
+      distarray[v]=new double[v+1];
+      if(distarray[v] == NULL)
+        std::cout << "bad allocate1" << '\n';
+      for (unsigned int l = 0; l < v+1; l++) {//fill all z blocks of mem with doubles
+        distarray[v][l] = distance_metric(*clusters[j][v],*clusters[j][l+1]);
+      }
+    }//done with assigment and creation of dist array
+    //---------------------------------------------------compute a[i] for each i in j
+    for (unsigned int l = 0; l < clustersize; l++) {
+      for (unsigned int m= 0; m < clustersize; m++) {
+        if(l>m)
+        a[i] += distarray[l-1][m];
+        else if(l<m)
+        a[i] += distarray[m-1][l];
+      }
+      if (clustersize>1)
+        a[i]=a[i]/(double)(clustersize-1);
+      else
+        a[i]=0;
+      i++;
+    }
+    //delete dist array
+    for (size_t l = 0; l < clustersize-1; l++) {
+      delete distarray[l];
+    }
+    delete distarray;
+    //--------------compute b[i] for each i in j-------------------------------
+    for (unsigned int v = 0; v < clustersize; v++) {//take a vector of j cluster
+      unsigned int secondcenter = k ;// initailized out of bounds on perpuse
+      double min=DBL_MAX;
+      for (unsigned int c = 0; c < k; c++) {// take a center
+        if (c!=j ) {//exclude the center we are in  //maybe add z!=j
+          if(distance_metric(*clusters[j][v],(*centers)[c])<min){//find the second best for that v
+            min = distance_metric(*clusters[j][v],(*centers)[c]);
+            secondcenter = c;
+            #if DEBUG
+              std::cout << "found the secondcenter of "<<clusters[j][v]->id<<" == "<<(*centers)[c].id<< '\n';
+            #endif
+          }
+        }
+      }
+      //found second center
+      if(secondcenter < k ){//find b[r]
+        unsigned int secondcentersize = clusters[secondcenter].size();
+        for (unsigned int v2= 0; v2 < secondcentersize; v2++) {//take a vector from the 2nd best cluster
+          b[r]+=distance_metric(*clusters[j][v],*clusters[secondcenter][v2]);//distance from v to every other v on the second best cluster
+        }
+        b[r]=b[r]/(double)secondcentersize;
+        r++;
+      }
+      else
+        std::cout << "error did not find 2nd center of vector "<<clusters[j][v]->id << '\n';
+    }
+  }
+
+  // ---------------------------------------cumpute clustercoef[j]
+  clustersize = 0;
+  i = 0;   // i goes from 0->n because sum(clustersize[j]) over j:1->k == n
+  unsigned int sum = 0;
+  for (unsigned int j = 0; j < k; j++) {
+    clustersize = clusters[j].size();
+    for (; i < sum+clustersize; i++) {
+      // this is s(i)
+      if(a[i]<b[i]){
+        #if DEBUG
+          std::cout << b[i]<<"+"<<a[i] << '\n';
+          std::cout << 1-(a[i]/b[i]) << '\n';
+        #endif
+        clustercoef[j]+=1-(a[i]/b[i]);
+      }
+      else if(a[i]>b[i])
+      {
+        #if DEBUG
+          std::cout << b[i]<<"-"<<a[i] << '\n';
+          std::cout << (b[i]/a[i])-1 << '\n';
+        #endif
+        clustercoef[j]+=(b[i]/a[i])-1;
+      }
+      else
+        clustercoef[j]+=0;
+    }
+    sum+=clustersize;
+    clustercoef[j]=clustercoef[j]/(double)(clustersize);
+  }
+  #if DEBUG
+    for (unsigned int x = 0; x < n; x++) {
+      cout<<x+1<<". "<<b[x]<<endl;
+    }
+    for (unsigned int x = 0; x < n; x++) {
+      cout<<x+1<<". "<<a[x]<<endl;
+    }
+  #endif
+  std::cout << "\nCluster Coefficients" << '\n';
+  std::cout << "--------------------" << '\n';
+  for (unsigned int x = 0; x < k; x++) {
+    cout<<x+1<<". "<<clustercoef[x]<<endl;
+  }
+  //TODO delete a ,b ,clustercoef
+}
+
+void vectorizeandsilhouette(list<my_vector*>* lclusters,list<my_vector>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)){
+  vector<my_vector> centers(lcenters->begin(), lcenters->end());
+  vector<my_vector*>* clusters = new vector<my_vector*> [k];
+  for (unsigned int j = 0; j < k; j++) {
+    for (my_vector* c: lclusters[j]) {//naive approach
+  	   clusters[j].push_back(c);
+  	}
+  }
+
+  //calls silhouette
+  silhouette(clusters,&centers,k,n,distance_metric);
+  // TODO delete
 }
