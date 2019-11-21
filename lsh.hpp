@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <list>
 
 #include "GridHash.hpp"
@@ -10,6 +11,8 @@
 #include "my_vector.hpp"
 #include "g_i.hpp"
 #include "util.hpp"
+
+// typedef std::unordered_set<my_vector*,std::hash<my_vector*>,PointedMy_vectorEq> my2_unordered_set;
 
 class lsh{
 protected:
@@ -36,6 +39,7 @@ class lsh_vector:lsh{
                     double (*distance_metric)(my_vector&, my_vector&));
     std::list<my_vector*>* find_rNN(my_vector &query,  double r,
                     double (*distance_metric)(my_vector&, my_vector&));
+    std::unordered_map<unsigned int, my_vector*>* find_bucket(my_vector &query, double (*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
 };
 
 class lsh_curve:lsh{

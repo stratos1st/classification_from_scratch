@@ -112,6 +112,19 @@ list<my_vector*>* lsh_vector::find_rNN(my_vector &query, double r, double (*dist
   return ans;
 }
 
+unordered_map<unsigned int, my_vector*>* lsh_vector::find_bucket(my_vector &query, double (*distance_metric)(my_vector&, my_vector&)){
+  unordered_map<unsigned int, my_vector*>* ans=new unordered_map<unsigned int, my_vector*>;
+  hash<my_vector*> kk;
+
+  for(unsigned int i=0;i<l;i++){
+    auto range = hash_table[i]->equal_range(table_g_i[i]->get_g_x(query));//returns all possible NNs
+    for(auto it = range.first; it != range.second; ++it)
+      ans->insert(make_pair(kk(it->second),it->second));
+  }
+
+  return ans;
+}
+
 //----------------------------------------------lsh_curve
 lsh_curve::lsh_curve(unsigned int vector_dimentions, unsigned int _max_curve_sz, const unsigned int _l, const float _w,
           const unsigned int _k, const double _pad_number, const size_t _container_sz,
