@@ -69,10 +69,11 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
   for(unsigned int i=0;i<k-1;i++)
     intersection[i]= new unordered_map<unsigned int, my_vector*>[i+1];
   //find intersection of close_points
+  unordered_map<unsigned int, my_vector*> *big, *small;
   for(unsigned int ii=0;ii<k-1;ii++)
     for(unsigned int j=0;j<=ii;j++){//for every . in intersection
-      unordered_map<unsigned int, my_vector*>* big=close_points[ii+1];
-      unordered_map<unsigned int, my_vector*>* small=close_points[j];
+      big=close_points[ii+1];
+      small=close_points[j];
       if(big->size()<small->size())
         swap(big,small);//iterate throw the smallest set
       for(unordered_map<unsigned int, my_vector*>::iterator i = small->begin(); i != small->end(); i++)//for every element in the set
@@ -97,16 +98,18 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
   double min_dist,tmp1,tmp2;
   unsigned int closest_center;
 
-  cout<<"aaaaaaa\n";
   //classify all intersection elements
+  #if DEBUG
+  cout<<"-all intersection elements\n";
+  #endif
   for(unsigned int i=0;i<k-1;i++){
     for(unsigned int j=0;j<=i;j++){
-      for(unordered_map<unsigned int, my_vector*>::iterator v=intersection[i][j].begin();v!=intersection[i][j].end();){//for every element in intersection
+      for(unordered_map<unsigned int, my_vector*>::iterator v=intersection[i][j].begin();v!=intersection[i][j].end();++v){//for every element in intersection
         if(left_to_classify.find(hasher(v->second)) != left_to_classify.end()){//if the element has yet to be classified
           min_dist=DBL_MAX;
           for(unsigned int ik=0;ik<k-1;ik++){
-            for(unsigned int jk=0;jk<=i;jk++){//search all the intersections
-              if( intersection[ik][jk].find(hasher(v->second)) !=  intersection[ik][jk].end()){//if it exists in any of them find the min dist and the closest_center
+            for(unsigned int jk=0;jk<=ik;jk++){//search all the intersections
+              if(intersection[ik][jk].find(hasher(v->second)) !=  intersection[ik][jk].end()){//if it exists in any of them find the min dist and the closest_center
                 tmp1=manhattan_distance(*next(centers->begin(), ik), *v->second);
                 tmp2=manhattan_distance(*next(centers->begin(), jk), *v->second);
                 if(tmp1<min_dist){
@@ -120,25 +123,35 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
               }
             }
           }
-          (v->second)->print_vec();
+          #if DEBUG
+          v->second->print_vec();
+          #endif
           clusters[closest_center].push_back(v->second);//push the element in the closest cluster
-          left_to_classify.erase(v++);//erase it from left_to_classify
+          left_to_classify.erase(hasher(v->second));//erase it from left_to_classify
         }
-        else
-          ++v;
       }
     }
   }
 
+
   //classify all close_points elements (exept the ones classified in intersection)
+  #if DEBUG
+  cout<<"-all close_points elements (exept the ones classified in intersection)\n";
+  #endif
   for(unsigned int i=0;i<k;i++)
-    for (auto v : *close_points[i])//for all the close points
-      if(left_to_classify.find(hasher(v.second)) != left_to_classify.end()){//if the element has yet to be classified
-        clusters[k].push_back(v.second);//push the element in the closest cluster
-        left_to_classify.erase(hasher(v.second));//erase it from left_to_classify
+    for (unordered_map<unsigned int, my_vector*>::iterator v=close_points[i]->begin();v!=close_points[i]->end();++v)//for all the close points
+      if(left_to_classify.find(hasher(v->second)) != left_to_classify.end()){//if the element has yet to be classified
+        #if DEBUG
+        v->second->print_vec();
+        #endif
+        clusters[i].push_back(v->second);//push the element in the closest cluster
+        left_to_classify.erase(hasher(v->second));//erase it from left_to_classify
       }
 
   //classify all the rest
+  #if DEBUG
+  cout<<"-all the rest\n";
+  #endif
   for (unordered_map<unsigned int, my_vector*>::iterator v=left_to_classify.begin();v!=left_to_classify.end();){//for every element in left_to_classify
     min_dist=DBL_MAX;
     for(unsigned int i=0;i<k;i++){//check all the centers
@@ -149,9 +162,16 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
       }
     }
     clusters[closest_center].push_back(v->second);//push the element in the closest cluster
-    left_to_classify.erase(v++);//erase it from left_to_classify
+    #if DEBUG
+    v->second->print_vec();
+    v=left_to_classify.erase(v);
+    #else
+    ++v;
+    #endif
+
   }
 
+  #if DEBUG
   if(left_to_classify.size()!=0){
     cerr<<"\n\nleft_to_classify.size()!=0\n\n";
     for (auto v : left_to_classify)
@@ -166,7 +186,6 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
       // exit(1);
     }
 
-  #if DEBUG
   cout<<"clusters\n";
   unsigned int ii=0;
   for(unsigned int i=0;i<k;i++){
@@ -175,7 +194,6 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
       j->print_vec();
   }
   #endif
-  exit(0);
   return clusters;
 }
 //filippos was here
@@ -272,6 +290,10 @@ int main(){
         changed=true;
         break;
       }
+    if(max_iterations==1){
+      changed=false;
+      cout<<"max iterations reached\n";
+    }
     if(!changed){
       cout<<"success!!\n";
       cout<<"end centers\n";
@@ -287,10 +309,9 @@ int main(){
       break;
     }
 
-
     iteration++;
   }
-  vectorizeandsilhouette(clusters,centers,centers->size(),data->size());
+  // vectorizeandsilhouette(clusters,centers,centers->size(),data->size());
 
   cout<<"\n\nEND!!\n\n";
 
@@ -324,7 +345,7 @@ list<T>* initialization1(list <T>* data, unsigned int k){//8eli srand (time(NULL
   #endif
 
   //TODO mpori na iparxi kalieros tropos
-  std::vector<int> random_numbers;
+  vector<int> random_numbers;
   for(unsigned int i=0; i<data->size(); i++)
       random_numbers.push_back(i);
   unsigned seed = time(NULL);
@@ -369,6 +390,8 @@ list<my_vector*>* assigment1(list<my_vector>* data, list<my_vector>* centers, un
     }
     clusters[best_cluster-1].push_back(&i);
   }
+
+  #if DEBUG
   //mpori ena cluster na ine keno!!
   for(unsigned int i=0;i<k;i++)
     if(clusters[i].size()==0){
@@ -376,7 +399,6 @@ list<my_vector*>* assigment1(list<my_vector>* data, list<my_vector>* centers, un
       // exit(1);
     }
 
-  #if DEBUG
   cout<<"clusters\n";
   unsigned int ii=0;
   for(unsigned int i=0;i<k;i++){
