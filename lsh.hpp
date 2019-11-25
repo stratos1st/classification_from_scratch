@@ -23,9 +23,15 @@ protected:
     lsh(unsigned int dimentions, const unsigned int _l=10, const float _w=4000,
               const unsigned int _k=4, const unsigned int _m=pow(2,32)-5);
     virtual ~lsh();
+public:
+    virtual void train(std::list <my_curve> *train_data_set);
+    virtual void train(std::list <my_vector> *train_data_set);
+    virtual std::pair<my_vector*, double> find_NN(my_vector &query,
+                    double (*distance_metric)(my_vector&, my_vector&));
+    virtual std::pair<my_curve*, double> find_NN(my_curve &query, double(*distance_metric_vector)(my_curve&, my_curve&));
 };
 
-class lsh_vector:lsh{
+class lsh_vector:public lsh{
   private:
     std::unordered_multimap<long int, my_vector*> **hash_table;
     std::list<my_vector> *data;
@@ -42,7 +48,7 @@ class lsh_vector:lsh{
     std::unordered_map<unsigned int, my_vector*>* find_bucket(my_vector &query, double (*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
 };
 
-class lsh_curve:lsh{
+class lsh_curve:public lsh{
   private:
     const double pad_number;
     const unsigned int max_curve_sz;
@@ -59,9 +65,7 @@ class lsh_curve:lsh{
     ~lsh_curve();
     void train(std::list <my_curve> *train_data_set);
     void train(std::list <std::pair<my_curve*,my_vector*>> *train_data_set);
-    std::pair<my_curve*, double> find_NN(my_curve &query,
-                    double (*distance_metric_curve)(my_curve&, my_curve&, double(*distance_metric_vector)(my_vector&, my_vector&))=Dtw,
-                    double(*distance_metric_vector)(my_vector&, my_vector&)=manhattan_distance);
+    std::pair<my_curve*, double> find_NN(my_curve &query, double (*distance_metric_curve)(my_curve&, my_curve&));
     std::pair<my_curve*, double> find_NN(std::pair<my_curve*,my_vector*> &query,
                     double (*distance_metric_curve)(my_curve&, my_curve&, double(*distance_metric_vector)(my_vector&, my_vector&))=Dtw,
                     double(*distance_metric_vector)(my_vector&, my_vector&)=manhattan_distance);

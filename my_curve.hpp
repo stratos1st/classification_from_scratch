@@ -15,7 +15,7 @@ class my_curve{
   ~my_curve();
 
   my_vector& get_vector(unsigned int);
-  //unsigned int get_dimentions() const;//returns dimentions
+  unsigned int get_dimentions() const;//returns dimentions
   void print_vec(unsigned int until=0);//prints x1,x1,...,xuntil. if until==0 prints all
   bool operator==(const my_curve &other);
   my_curve& operator=(const my_curve &other);

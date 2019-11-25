@@ -111,5 +111,5 @@ my_vector* rangebinarysearch(double target,pair<double,my_vector*>* p,int r/*it 
             r = m - 1;
     }
   std::cout << "binary search didn't find the target error" << '\n';
-  return NULL;
+  exit(1);
 }

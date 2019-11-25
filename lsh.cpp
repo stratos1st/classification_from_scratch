@@ -240,9 +240,7 @@ pair<my_curve*, double> lsh_curve::find_NN(pair<my_curve*,my_vector*> &query,
   return make_pair(ans,minn);
 }
 
-pair<my_curve*, double> lsh_curve::find_NN(my_curve &query,
-                  double (*distance_metric_curve)(my_curve&, my_curve&, double(*distance_metric_vector)(my_vector&, my_vector&)),
-                  double(*distance_metric_vector)(my_vector&, my_vector&)){
+pair<my_curve*, double> lsh_curve::find_NN(my_curve &query, double (*distance_metric_curve)(my_curve&, my_curve&)){
   my_curve *ans;
   double minn=DBL_MAX;
   for(unsigned int i=0;i<l;i++){
@@ -250,7 +248,7 @@ pair<my_curve*, double> lsh_curve::find_NN(my_curve &query,
     auto range = hash_table[i]->equal_range(table_g_i[i]->get_g_x(*vector_query));//returns all possible NNs
     delete vector_query;
     for(auto it = range.first; it != range.second; ++it){
-      double tmp=distance_metric_curve(query,*it->second.first,distance_metric_vector);
+      double tmp=distance_metric_curve(query,*it->second.first);
       if(minn>tmp){//if this is a better neighbor
         minn=tmp;
         ans=it->second.first;

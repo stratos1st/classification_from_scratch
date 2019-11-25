@@ -84,6 +84,10 @@ my_curve::my_curve(const my_curve &p2){
   *this=p2;   //this calls curve '='operator
 }
 
+unsigned int my_curve::get_dimentions() const{
+  return vectordimentions;//sizeof(coordinates)/sizeof(coordinates[0]);
+}
+
 void my_curve::print_vec(unsigned int until){
   cout<<numofvectors<<" curve "<<id<<endl;
   if(until>numofvectors){
