@@ -9,7 +9,7 @@ class my_curve{
   unsigned int numofvectors;
   unsigned int vectordimentions;
   unsigned int id;
-  static double tol;
+  static double curve_tol;
 
   my_curve(unsigned int points,unsigned int dimentions=2);//how many points the curve will have and their dimentions
   ~my_curve();
@@ -22,5 +22,15 @@ class my_curve{
   my_curve(const my_curve &p2);
 };
 
+// custom specialization of std::hash
+namespace std{
+  template<>
+  struct hash<my_curve*>{
+    size_t operator()(const my_curve* const s) const noexcept{
+      size_t h1 = hash<unsigned int>{}(s->id);
+      return h1;
+    }
+  };
+}
 
 #endif

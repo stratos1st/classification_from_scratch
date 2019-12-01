@@ -22,13 +22,15 @@ protected:
 
     lsh(unsigned int dimentions, const unsigned int _l=10, const float _w=4000,
               const unsigned int _k=4, const unsigned int _m=pow(2,32)-5);
-    virtual ~lsh();
 public:
-    virtual void train(std::list <my_curve> *train_data_set);
-    virtual void train(std::list <my_vector> *train_data_set);
-    virtual std::pair<my_vector*, double> find_NN(my_vector &query,
-                    double (*distance_metric)(my_vector&, my_vector&));
-    virtual std::pair<my_curve*, double> find_NN(my_curve &query, double(*distance_metric_vector)(my_curve&, my_curve&));
+  virtual ~lsh();
+  virtual void train(std::list <my_curve> *train_data_set){std::cout<<"\n\n!!should not call this!!\n\n";exit(1);};
+  virtual void train(std::list <my_vector> *train_data_set){std::cout<<"\n\n!!should not call this!!\n\n";exit(1);};
+  virtual std::pair<my_vector*, double> find_NN(my_vector &query,
+                  double (*distance_metric)(my_vector&, my_vector&)){std::cout<<"\n\n!!should not call this!!\n\n";exit(1);};
+  virtual std::pair<my_curve*, double> find_NN(my_curve &query, double(*distance_metric_vector)(my_curve&, my_curve&)){std::cout<<"\n\n!!should not call this!!\n\n";exit(1);};
+  virtual std::unordered_map<unsigned int, my_vector*>* find_bucket(my_vector &query, double (*distance_metric)(my_vector&, my_vector&)){std::cout<<"\n\n!!should not call this!!\n\n";exit(1);};
+  virtual std::unordered_map<unsigned int, my_curve*>* find_bucket(my_curve &query, double (*distance_metric)(my_curve&, my_curve&)){std::cout<<"\n\n!!should not call this!!\n\n";exit(1);};
 };
 
 class lsh_vector:public lsh{
@@ -69,6 +71,7 @@ class lsh_curve:public lsh{
     std::pair<my_curve*, double> find_NN(std::pair<my_curve*,my_vector*> &query,
                     double (*distance_metric_curve)(my_curve&, my_curve&, double(*distance_metric_vector)(my_vector&, my_vector&))=Dtw,
                     double(*distance_metric_vector)(my_vector&, my_vector&)=manhattan_distance);
+    std::unordered_map<unsigned int, my_curve*>* find_bucket(my_curve &query, double (*distance_metric)(my_curve&, my_curve&));
 
 };
 

@@ -259,6 +259,21 @@ pair<my_curve*, double> lsh_curve::find_NN(my_curve &query, double (*distance_me
   return make_pair(ans,minn);
 }
 
+unordered_map<unsigned int, my_curve*>* lsh_curve::find_bucket(my_curve &query, double (*distance_metric)(my_curve&, my_curve&)){
+  unordered_map<unsigned int, my_curve*>* ans=new unordered_map<unsigned int, my_curve*>;
+  hash<my_curve*> kk;
+
+  for(unsigned int i=0;i<l;i++){
+    my_vector *vector_query=gridify_and_padd(query,i,pad_number);
+    auto range = hash_table[i]->equal_range(table_g_i[i]->get_g_x(*vector_query));//returns all possible NNs
+    delete vector_query;
+    for(auto it = range.first; it != range.second; ++it)
+      ans->insert(make_pair(kk(it->second.first),it->second.first));
+  }
+
+  return ans;
+}
+
 my_vector* lsh_curve::gridify_and_padd(my_curve& curve, unsigned int iteration, double pad_value){//prosoxi iparxi idia sto random_projection.cpp
   my_vector* tmp=gridhashfunctions[iteration]->gridify(curve);
   my_vector* final_vector=padd(*tmp,max_curve_sz*curve.vectordimentions,pad_value);

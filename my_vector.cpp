@@ -6,6 +6,8 @@ using namespace std;
 
 #define DEBUG 0
 
+double my_vector::vector_tol = 0.01;
+
 my_vector::my_vector(unsigned int dimentions){
   #if DEBUG
   cout<<"Constructing "<<dimentions<<"d vector"<<'\n';
@@ -69,11 +71,20 @@ void my_vector::print_vec(unsigned int until) const{
   cout<<endl;
 }
 
+bool my_vector::operator==(const my_vector &other){
+  if(other.get_dimentions()!=get_dimentions())
+    return false;
+  for(unsigned int i=0;i<other.get_dimentions();i++)
+    if (abs(coordinates[i]-other.coordinates[i])>vector_tol)
+      return false;
+  return true;
+}
+
 bool operator==(const my_vector &other,const my_vector &other2){
   if(other.get_dimentions()!=other2.get_dimentions())
     return false;
   for(unsigned int i=0;i<other.get_dimentions();i++)
-    if (other2.coordinates[i]!=other.coordinates[i])
+    if (abs(other2.coordinates[i]-other.coordinates[i])>my_vector::vector_tol)
       return false;
   return true;
 }

@@ -6,7 +6,7 @@ using namespace std;
 
 #define DEBUG 0
 
-double my_curve::tol = 0.01;
+double my_curve::curve_tol = 0.01;
 
 my_curve::my_curve(unsigned int points,unsigned int dimentions){
   #if DEBUG
@@ -66,7 +66,7 @@ bool my_curve::operator==(const my_curve &other){
 
   for(unsigned int i=0;i<numofvectors;i++)
     for (unsigned int j = 0; j < vectordimentions; j++)
-      if(abs(get_vector(i).coordinates[j]-other.vectors[i]->coordinates[j])>tol)
+      if(abs(get_vector(i).coordinates[j]-other.vectors[i]->coordinates[j])>curve_tol)
         return false;
   return true;
 }

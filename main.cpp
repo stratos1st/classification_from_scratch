@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <list>
 #include <vector>
 #include <stdlib.h>     /* srand, rand */
@@ -15,9 +16,7 @@
 
 using namespace std;
 
-#define DEBUG 1
-
-void init1_ass1_update2(list <my_vector>* data,unsigned int k);
+#define DEBUG 0
 
 template<class T>
 list<T>* initialization1(list <T>* data, unsigned int k);
@@ -29,7 +28,10 @@ list<T*>* assigment1(list<T>* data, list<T>* centers, unsigned int k, double(*di
 template list<my_vector*>* assigment1(list<my_vector>* data, list<my_vector>* centers, unsigned int k, double(*distance_metric)(my_vector&, my_vector&));
 template list<my_curve*>* assigment1(list<my_curve>* data, list<my_curve>* centers, unsigned int k, double(*distance_metric)(my_curve&, my_curve&));
 
-list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, unsigned int k, lsh_vector* lsh_model);
+template<class T>
+list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_model, double(*distance_metric)(T&, T&));
+list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, unsigned int k, lsh_vector* lsh_model, double(*distance_metric)(my_vector&, my_vector&));
+list<my_curve*>* assigment2(list<my_curve>* data, list<my_curve>* centers, unsigned int k, lsh_curve* lsh_model, double(*distance_metric)(my_curve&, my_curve&));
 
 template<class T>
 list<T>* update1(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned int k, lsh* lsh_model,
@@ -46,7 +48,20 @@ template list<my_curve>* update2(list<my_curve>* data, list<my_curve>* centers, 
 
 my_curve get_curve_mean(unsigned int dimentions, list<my_curve*> &cluster);
 my_vector get_vector_mean(unsigned int dimentions, list<my_vector*> &cluster);
+
 double list_diff(list<my_vector> *list1, list<my_vector> *list2);
+double list_diff(list<my_curve> *list1, list<my_curve> *list2);
+
+template<class T>
+bool old_centers_equal_new_centers(list<T> *old_centers,  list<T> *new_centers, double tolerance);
+template bool old_centers_equal_new_centers(list<my_vector> *old_centers,  list<my_vector> *new_centers, double tolerance);
+template bool old_centers_equal_new_centers(list<my_curve> *old_centers,  list<my_curve> *new_centers, double tolerance);
+
+template<class T>
+bool old_clusters_equal_new_clusters(list<T*> *old_clusters,  list<T*> *new_clusters, unsigned int k);
+template bool old_clusters_equal_new_clusters(list<my_vector*> *old_clusters,  list<my_vector*> *new_clusters, unsigned int k);
+template bool old_clusters_equal_new_clusters(list<my_curve*> *old_clusters,  list<my_curve*> *new_clusters, unsigned int k);
+
 
 //filippos was here
 void vectorizeandsilhouette(list<my_vector*>* lclusters,list<my_vector>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
@@ -54,31 +69,78 @@ void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned
 
 int main(){
   srand (time(NULL));
-  unsigned int k=4, max_iterations=10;
-  double center_tol=0.01;
+  string input_file="./Input/test.txt",out_file="my.out";
+  unsigned int k=4, max_iterations=50,lsh_window=6000,g_no=4,grids_no=4,container_sz=10,lsh_l=4,max_curve_sz=10;
+  bool vector_input=true,stop_when_centers=true,complete_flag=false;
+  double center_tol=0.01,pad_number=99999.99999;
+  my_curve::curve_tol=0.01;
+  my_vector::vector_tol=0.01;
 
   cout<<"arxisame!!\n";
 
-  list <my_vector>* data=read_vector_file("./Input/test.txt");
+//-----------------------------------------------------read cluster.conf
+  ifstream infile("cluster.conf");
+  char str[100];
+  if (infile.good()){
+    while(infile.getline(str,100)){
+      sscanf(str,"number_of_clusters: %u",&k);//FIXME does not take k
+      sscanf(str,"number_of_grids: %u",&grids_no);
+      sscanf(str,"number_of_vector_hash_tables: %u",&lsh_l);
+      sscanf(str,"number_of_vector_hash_functions: %u",&g_no);
+      sscanf(str,"lsh_window: %u",&lsh_window);
+      sscanf(str,"input_contains_vectors: %u",&vector_input);
+      sscanf(str,"lsh_multimap_container_size: %u",&container_sz);
+      sscanf(str,"stop_when_centers_dont_change: %u",&stop_when_centers);
+      sscanf(str,"curve_tolerance: %lf",&my_curve::curve_tol);
+      sscanf(str,"vector_tolerance: %lf",&my_vector::vector_tol);
+      sscanf(str,"center_tolerance: %lf",&center_tol);
+      sscanf(str,"max_iterations: %u",&max_iterations);
+      sscanf(str,"lsh_curves_pad_number: %lf",&pad_number);
+      sscanf(str,"max_curve_size: %u",&max_curve_sz);
+    }
+  }
+  else{
+    cerr << "\n\n!! .conf FILE ERROR !!\n\n";
+    exit(1);
+  }
+  infile.close();
 
-  lsh *lsh_model=new lsh_vector(data->front().get_dimentions(),5,5,4,4);
-  lsh_model->train(data);
+  k=4;
+  cout<<"starting parameters:"<<"\n\tnumber_of_clusters= "<<k<<"\n\tnumber_of_grids= "<<grids_no
+  <<"\n\tlsh_l= "<<lsh_l<<"\n\tnumber_of_vector_hash_functions= "<<g_no<<"\n\tlsh_window= "<<lsh_window
+  <<"\n\tvector_input= "<<vector_input<<"\n\tcontainer_sz= "<<container_sz<<"\n\tpad_number= "<<pad_number
+  <<"\n\tmax_curve_size= "<<max_curve_sz
+  <<"\n\tstop_when_centers_dont_change= "<<stop_when_centers<<"\n\tcurve_tolerance= "<<my_curve::curve_tol
+  <<"\n\tvector_tolerance= "<<my_vector::vector_tol<<"\n\tcenter_tolerance= "<<center_tol
+  <<"\n\tmax_iterations= "<<max_iterations<<"\n\tinput_file= "<<input_file
+  <<"\n\tout_file= "<<out_file<<"\n\tcomplete_flag= "<<complete_flag<<endl;
 
+////-----------------------------------------------------read input file
+  list <my_vector>* data=read_vector_file(input_file);
+  // list <my_vector>* data=read_vector_file("./Input/DataVectors_5_500x100.csv");
+  cout<<"reading done\n";
   #if DEBUG
   cout<<"data\n";
   for(auto i : *data)
     i.print_vec();
   #endif
 
-  list<my_vector> *centers=initialization1(data,k);//-----------initialization1
+  lsh *lsh_model;
+  if(vector_input)
+    lsh_model=new lsh_vector(data->front().get_dimentions(),lsh_l,lsh_window,grids_no,container_sz);
+  else
+    lsh_model=new lsh_curve(data->front().get_dimentions(),max_curve_sz,lsh_l,lsh_window,grids_no,pad_number,container_sz);
+
+  lsh_model->train(data);
+  cout<<"lsh training done\n";
+
   list<my_vector> *old_centers;
+  list<my_vector> *centers=initialization1(data,k);//-----------initialization
 
   list<my_vector*> *old_clusters;
-  list<my_vector*> *clusters;
-
+  list<my_vector*> *clusters=assigment2(data,centers,k,lsh_model,manhattan_distance);//------------------------------assigment
   //me tis epiloges gia initialization pou dini ipoti8ete oti ta cluster 8a exoun toulaxiston 1 simio
   //kanonika 8a prepi na to ele3oume prin kalesoume assigment
-  clusters=assigment1(data,centers,k,manhattan_distance);//------------------------------assigment1
 
   unsigned int iteration=0;
   while(max_iterations--!=0){
@@ -87,137 +149,88 @@ int main(){
     #endif
 
     old_centers=centers;
-    centers=update1(data, centers, clusters, k,lsh_model,get_vector_mean,manhattan_distance);//-----------------------update2
+    centers=update2(data, centers, clusters, k,get_vector_mean);//-----------------------update
 
     // sin8iki break:: nea kentra konta sta palia
-    // bool changed=false;
-    // if(list_diff(old_centers,centers)>center_tol)//prepi na oriso sinartisi gia to - (curves kai vectors)
-    //   changed=true;
-    // if(!changed){
-      // cout<<"success!!\niteration="<<++iteration<<endl;
-    //   cout<<"end centers with tol="<<list_diff(old_centers,centers)<<"\n";
-    //   for(auto i : *centers)
-    //     i.print_vec();
-    //   cout<<"clusters\n";
-    //   unsigned int ii=0;
-    //   for(unsigned int i=0;i<k;i++){
-    //     cout<<"\tcluster"<<++ii<<endl;
-    //     for(auto* j : clusters[i])
-    //       j->print_vec();
-    //   }
-    //   old_centers->clear();
-    //   delete old_centers;
-    //   centers->clear();
-    //   delete centers;
-    //   break;
-      // for(unsigned int i=0;i<k;i++)
-      //   clusters[i].clear();
-      // delete[] clusters;
-    // }
-    // centers->clear();
-    // delete centers;
-    // for(unsigned int i=0;i<k;i++)
-    //   clusters[i].clear();
-    // delete[] clusters;
+    if(stop_when_centers)
+      if(old_centers_equal_new_centers(old_centers,centers,center_tol))
+        break;
+    old_centers->clear();
+    delete old_centers;
 
     old_clusters=clusters;
-    clusters=assigment1(data,centers,k,manhattan_distance);//----------------------------assigment1
+    clusters=assigment2(data,centers,k,lsh_model,manhattan_distance);//----------------------------assigment
 
     //sin8iki break:: nea cluster idia me palia
-    bool changed=false;
-    for(unsigned int i=0;i<k;i++)
-      if(old_clusters[i]!=clusters[i]){
-        changed=true;
+    if(!stop_when_centers)
+      if(old_clusters_equal_new_clusters(old_clusters,clusters,k))
         break;
-      }
-    if(max_iterations==1){
-      changed=false;
-      cout<<"max iterations reached\n";
-    }
-    if(!changed){
-      cout<<"success!!\niteration="<<++iteration<<endl;
-      cout<<"end centers\n";
-      for(auto i : *centers)
-        i.print_vec();
-      cout<<"clusters\n";
-      unsigned int ii=0;
-      for(unsigned int i=0;i<k;i++){
-        cout<<"\tcluster"<<++ii<<endl;
-        for(auto* j : clusters[i])
-          j->print_vec();
-      }
-      for(unsigned int i=0;i<k;i++){
-        old_clusters[i].clear();
-        clusters[i].clear();
-      }
-      delete[] old_clusters;
-      delete[] clusters;
-      centers->clear();
-      delete centers;
-      break;
-    }
     for(unsigned int i=0;i<k;i++)
       old_clusters[i].clear();
     delete[] old_clusters;
-    centers->clear();
-    delete centers;
 
+    if(max_iterations==1){
+      cout<<"max iterations reached\n";
+      break;
+    }
     iteration++;
   }
+
+  cout<<"success!!\niteration="<<++iteration<<endl;
+  cout<<"end centers\n";
+  for(auto i : *centers)
+    i.print_vec();
+    // cout<<i.id<<endl;
+  cout<<"clusters\n";
+  unsigned int ii=0;
+  for(unsigned int i=0;i<k;i++){
+    cout<<"\tcluster"<<++ii<<endl;
+    if(clusters[i].size()==0)
+      cout<<"cluster of size 0\n";
+    for(auto* j : clusters[i])
+      j->print_vec();
+  }
+
   // vectorizeandsilhouette(clusters,centers,centers->size(),data->size());
 
-  cout<<"\n\nEND!!\n\n";
+  if(max_iterations!=1){
+    if(stop_when_centers){
+      old_centers->clear();
+      delete old_centers;
+    }
+    else{
+      for(unsigned int i=0;i<k;i++)
+        old_clusters[i].clear();
+      delete[] old_clusters;
+    }
+  }
+  centers->clear();
+  delete centers;
+  for(unsigned int i=0;i<k;i++)
+    clusters[i].clear();
+  delete[] clusters;
 
+  delete lsh_model;
   data->clear();
   delete data;
+
+  cout<<"\n\nEND!!\n\n";
 
   return 0;
 }
 
-// void init1_ass1_update2(list <my_vector>* data, unsigned int k){
-//   list <my_vector>* centers=initialization1(data,k);//-----------initialization1
-//
-//   list<my_vector*> *old_clusters;
-//   list<my_vector*> *clusters;
-//
-//   clusters=assigment1(data,centers,k);//------------------------------assigment1
-//
-//   unsigned int iteration=0;
-//   while(1){
-//     cout<<"iteration="<<iteration<<endl;
-//
-//   // --------------------------------------------------------------sin8iki break
-//     bool changed=false;
-//     for(unsigned int i=0;i<k;i++)
-//       if(old_clusters[i]!=clusters[i]){
-//         changed=true;
-//         break;
-//       }
-//     if(!changed){
-//       cout<<"success!!\n";
-//       cout<<"end centers\n";
-//       for(auto i : *centers)
-//         i.print_vec();
-//       cout<<"clusters\n";
-//       unsigned int ii=0;
-//       for(unsigned int i=0;i<k;i++){
-//         cout<<"\tcluster"<<++ii<<endl;
-//         for(my_vector* j : clusters[i])
-//           j->print_vec();
-//       }
-//       break;
-//     }
-//
-//     centers=update2(data, centers, clusters, k);//-----------------------update2
-//
-//     old_clusters=clusters;
-//     clusters=assigment1(data,centers,k);//----------------------------assigment1
-//
-//     iteration++;
-//   }
-//
-//   cout<<"\n\nEND!!\n\n";
-// }
+template<class T>
+bool old_clusters_equal_new_clusters(list<T*> *old_clusters, list<T*> *new_clusters, unsigned int k){
+  for(unsigned int i=0;i<k;i++)
+    if(old_clusters[i]!=new_clusters[i])
+      return false;
+  return true;
+}
+
+template<class T>
+bool old_centers_equal_new_centers(list<T> *old_centers,  list<T> *new_centers, double tolerance){
+  return list_diff(old_centers,new_centers)<tolerance;
+}
 
 template<class T>
 list<T>* initialization1(list <T>* data, unsigned int k){//8eli srand (time(NULL)); apo tin main na kalesti
@@ -233,7 +246,6 @@ list<T>* initialization1(list <T>* data, unsigned int k){//8eli srand (time(NULL
   unsigned seed = time(NULL);
   shuffle(random_numbers.begin(), random_numbers.end(), std::default_random_engine(seed));
 
-  //TODO mpori na gini beltistopiisi. prota epilogi ton kentron kai meta ena perasma tis listas
   list <T>* centers=new list <T>;
   for(unsigned int i=0;i<k;i++)
     centers->push_back(*next(data->begin(), random_numbers[i]%data->size()));
@@ -259,7 +271,7 @@ list<T*>* assigment1(list<T>* data, list<T>* centers, unsigned int k, double(*di
     minn=DBL_MAX;
     cluster_no=0;
     best_cluster=0;
-    for(auto j : *centers){
+    for(auto &j : *centers){
       cluster_no++;
       tmp=distance_metric(i, j);
       if(tmp<minn){
@@ -294,18 +306,19 @@ list<T*>* assigment1(list<T>* data, list<T>* centers, unsigned int k, double(*di
   return clusters;
 }
 
-list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, unsigned int k, lsh_vector* lsh_model){
+template<class T>
+list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_model, double(*distance_metric)(T&, T&)){
 // --------------------------------------------------------------------asigment 2
   #if DEBUG
   cout<<"assigment2\n";
   #endif
-  list<my_vector*> *clusters=new list<my_vector*>[k];
-  hash<my_vector*> hasher;
+  list<T*> *clusters=new list<T*>[k];
+  hash<T*> hasher;
 
-  unordered_map<unsigned int, my_vector*> *close_points[k];
+  unordered_map<unsigned int, T*> *close_points[k];
 
   for(unsigned int i=0;i<k;i++){
-    close_points[i]=lsh_model->find_bucket(*next(centers->begin(), i), manhattan_distance);
+    close_points[i]=lsh_model->find_bucket(*next(centers->begin(), i), distance_metric);
     #if DEBUG
     cout<<"lsh buckets\n-----------"<<i<<endl;
     for (auto v : *close_points[i])
@@ -325,18 +338,18 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
     4|. . . .
 
   */
-  unordered_map<unsigned int, my_vector*> *intersection[k-1];
+  unordered_map<unsigned int, T*> *intersection[k-1];
   for(unsigned int i=0;i<k-1;i++)
-    intersection[i]= new unordered_map<unsigned int, my_vector*>[i+1];
+    intersection[i]= new unordered_map<unsigned int, T*>[i+1];
   //find intersection of close_points
-  unordered_map<unsigned int, my_vector*> *big, *small;
+  unordered_map<unsigned int, T*> *big, *small;
   for(unsigned int ii=0;ii<k-1;ii++)
     for(unsigned int j=0;j<=ii;j++){//for every . in intersection
       big=close_points[ii+1];
       small=close_points[j];
       if(big->size()<small->size())
         swap(big,small);//iterate throw the smallest set
-      for(unordered_map<unsigned int, my_vector*>::iterator i = small->begin(); i != small->end(); i++)//for every element in the set
+      for(auto i = small->begin(); i != small->end(); i++)//for every element in the set
         if(big->find(hasher(i->second)) != big->end())//if the element exists in the other set
           intersection[ii][j].insert(*i);//insert it in intersection
     }
@@ -351,8 +364,8 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
     }
   #endif
 
-  unordered_map<unsigned int, my_vector*> left_to_classify;
-  for(my_vector& i : *data)//FIXME perini ora. mpori ta data na prepi na ine se set
+  unordered_map<unsigned int, T*> left_to_classify;
+  for(T& i : *data)//FIXME perini ora. mpori ta data na prepi na ine se set
     left_to_classify.insert(make_pair(hasher(&i),&i));
 
   double min_dist,tmp1,tmp2;
@@ -364,7 +377,7 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
   #endif
   for(unsigned int i=0;i<k-1;i++){
     for(unsigned int j=0;j<=i;j++){
-      for(unordered_map<unsigned int, my_vector*>::iterator v=intersection[i][j].begin();v!=intersection[i][j].end();++v){//for every element in intersection
+      for(auto v=intersection[i][j].begin();v!=intersection[i][j].end();++v){//for every element in intersection
         if(left_to_classify.find(hasher(v->second)) != left_to_classify.end()){//if the element has yet to be classified
           min_dist=DBL_MAX;
           for(unsigned int ik=0;ik<k-1;ik++){
@@ -399,7 +412,7 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
   cout<<"-all close_points elements (exept the ones classified in intersection)\n";
   #endif
   for(unsigned int i=0;i<k;i++)
-    for (unordered_map<unsigned int, my_vector*>::iterator v=close_points[i]->begin();v!=close_points[i]->end();++v)//for all the close points
+    for (auto v=close_points[i]->begin();v!=close_points[i]->end();++v)//for all the close points
       if(left_to_classify.find(hasher(v->second)) != left_to_classify.end()){//if the element has yet to be classified
         #if DEBUG
         v->second->print_vec();
@@ -412,7 +425,7 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
   #if DEBUG
   cout<<"-all the rest\n";
   #endif
-  for (unordered_map<unsigned int, my_vector*>::iterator v=left_to_classify.begin();v!=left_to_classify.end();){//for every element in left_to_classify
+  for (auto v=left_to_classify.begin();v!=left_to_classify.end();){//for every element in left_to_classify
     min_dist=DBL_MAX;
     for(unsigned int i=0;i<k;i++){//check all the centers
       tmp1=manhattan_distance(*v->second, *next(centers->begin(),i));
@@ -450,16 +463,23 @@ list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, un
   unsigned int ii=0;
   for(unsigned int i=0;i<k;i++){
     cout<<"\tcluster"<<++ii<<endl;
-    for(my_vector* j : clusters[i])
+    for(T* j : clusters[i])
       j->print_vec();
   }
   #endif
 
-  for(unsigned int i=0;i<k-1;i++)
+  for(unsigned int i=0;i<k-1;i++){
+    intersection[i]->clear();
     delete[] intersection[i];
+  }
+  for(unsigned int i=0;i<k;i++){
+    close_points[i]->clear();
+    delete close_points[i];
+  }
 
   return clusters;
 }
+
 //TODO make update1 brute force
 template<class T>
 list<T>* update1(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned int k, lsh* lsh_model,
@@ -481,7 +501,7 @@ list<T>* update1(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned i
       new_centers->push_back(*tmp.first);
     }
     else
-      new_centers->push_back(*next(centers->begin(), k));
+      new_centers->push_back(*next(centers->begin(), i));
 
   #if DEBUG
   cout<<"updated centers\n";
@@ -501,7 +521,7 @@ list<T>* update2(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned i
     if(clusters[k].size()!=0)
       new_centers->push_back(get_mean(data->front().get_dimentions(),clusters[i]));
     else
-      new_centers->push_back(*next(centers->begin(), k));
+      new_centers->push_back(*next(centers->begin(), i));
 
   #if DEBUG
   cout<<"updated centers\n";
@@ -586,7 +606,20 @@ double list_diff(list<my_vector> *list1, list<my_vector> *list2){
 
   for(my_vector j : *list2){
     for(unsigned int k=0;k<i->get_dimentions();k++)
-    maxx=max(abs(i->coordinates[k]-j.coordinates[k]),maxx);
+      maxx=max(abs(i->coordinates[k]-j.coordinates[k]),maxx);
+    i++;
+  }
+  return maxx;
+}
+
+double list_diff(list<my_curve> *list1, list<my_curve> *list2){
+  double maxx=0;
+  list<my_curve>::iterator i=list1->begin();
+
+  for(my_curve j : *list2){
+    for(unsigned int l=0;l<i->numofvectors;l++)
+      for(unsigned int k=0;k<i->get_dimentions();k++)
+        maxx=max(abs(i->vectors[l]->coordinates[k]-j.vectors[l]->coordinates[k]),maxx);
     i++;
   }
   return maxx;
@@ -647,7 +680,7 @@ void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned
     for (size_t l = 0; l < clustersize-1; l++) {
       delete distarray[l];
     }
-    delete distarray;
+    delete[] distarray;
     //--------------compute b[i] for each i in j-------------------------------
     for (unsigned int v = 0; v < clustersize; v++) {//take a vector of j cluster
       unsigned int secondcenter = k ;// initailized out of bounds on perpuse

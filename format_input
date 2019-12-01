@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sed -i 's/item//g' $1
+sed -i 's/$/ /' $1
+sed -i -e "s/[[:space:]]\+/ /g" $1
+sed -i '1d' $1
