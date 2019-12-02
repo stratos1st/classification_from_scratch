@@ -64,8 +64,14 @@ template bool old_clusters_equal_new_clusters(list<my_curve*> *old_clusters,  li
 
 
 //filippos was here
-void vectorizeandsilhouette(list<my_vector*>* lclusters,list<my_vector>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
-void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
+template<class T>
+list<double> * vectorizeandsilhouette(list<T*>* lclusters,list<T>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(T&, T&));
+template  list<double> * vectorizeandsilhouette(list<my_vector*>* lclusters,list<my_vector>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
+template  list<double> * vectorizeandsilhouette(list<my_curve*>* lclusters,list<my_curve>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(my_curve&, my_curve&));
+template<class T>
+list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k,unsigned int n,double(*distance_metric)(T&, T&));
+template list<double> * silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
+template list<double> * silhouette(vector<my_curve*>* clusters,vector<my_curve>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_curve&, my_curve&));
 
 int main(){
   srand (time(NULL));
@@ -190,8 +196,10 @@ int main(){
     for(auto* j : clusters[i])
       j->print_vec();
   }
-
-  // vectorizeandsilhouette(clusters,centers,centers->size(),data->size());
+  //TODO 987897678y7Q($%$*^&%$^#%#@%$#^$&%$)
+  list<double> *a = vectorizeandsilhouette(clusters,centers,centers->size(),data->size(),manhattan_distance);
+  a->clear();
+  delete a;
 
   if(max_iterations!=1){
     if(stop_when_centers){
@@ -629,8 +637,8 @@ double list_diff(list<my_curve> *list1, list<my_curve> *list2){
 
 
 
-
-void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)){
+template<class T>
+list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k,unsigned int n,double(*distance_metric)(T&, T&)){
   double *a= new double[n];
   double *b= new double[n];
   unsigned int clustersize = 0;
@@ -655,7 +663,9 @@ void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned
     #endif
 
     //create lower triangular matrix
-    distarray = new double* [clustersize-1];//create distance array:for cluster
+    if (clustersize<1) {
+      distarray = new double* [clustersize-1];//create distance array:for cluster
+    }
     for (unsigned int v = 0; v<clustersize-1; v++) {//z:0->clustersize-2 , lenght clustersize-1
       distarray[v]=new double[v+1];
       for (unsigned int l = 0; l < v+1; l++) {//fill all z blocks of mem with doubles
@@ -720,23 +730,24 @@ void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned
     clustersize = clusters[j].size();
     for (; i < sum+clustersize; i++) {
       // this is s(i)
-      if(a[i]<b[i]){
-        #if DEBUG
+      if(clustersize != 1){
+        if(a[i]<b[i]){
+          #if DEBUG
           std::cout << b[i]<<"+"<<a[i] << '\n';
           std::cout << 1-(a[i]/b[i]) << '\n';
-        #endif
-        clustercoef[j]+=1-(a[i]/b[i]);
-      }
-      else if(a[i]>b[i])
-      {
-        #if DEBUG
+          #endif
+          clustercoef[j]+=1-(a[i]/b[i]);
+        }
+        else if(a[i]>b[i])
+        {
+          #if DEBUG
           std::cout << b[i]<<"-"<<a[i] << '\n';
           std::cout << (b[i]/a[i])-1 << '\n';
-        #endif
-        clustercoef[j]+=(b[i]/a[i])-1;
-      }
-      else
-        clustercoef[j]+=0;
+          #endif
+          clustercoef[j]+=(b[i]/a[i])-1;
+        }
+      }else
+        clustercoef[j]=0;
     }
     sum+=clustersize;
     clustercoef[j]=clustercoef[j]/(double)(clustersize);
@@ -748,25 +759,39 @@ void silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned
     for (unsigned int x = 0; x < n; x++) {
       cout<<x+1<<". "<<a[x]<<endl;
     }
+    std::cout << "\nCluster Coefficients" << '\n';
+    std::cout << "--------------------" << '\n';
+    for (unsigned int x = 0; x < k; x++) {
+      cout<<x+1<<". "<<clustercoef[x]<<endl;
+    }
   #endif
-  std::cout << "\nCluster Coefficients" << '\n';
-  std::cout << "--------------------" << '\n';
-  for (unsigned int x = 0; x < k; x++) {
-    cout<<x+1<<". "<<clustercoef[x]<<endl;
+
+  list<double> *result = new list<double>;
+  for (unsigned int i = 0; i < k; i++) {
+    result->push_back(clustercoef[i]);
   }
-  //TODO delete a ,b ,clustercoef
+
+  delete a;
+  delete b;
+  delete clustercoef;
+
+  return result;
 }
 
-void vectorizeandsilhouette(list<my_vector*>* lclusters,list<my_vector>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)){
-  vector<my_vector> centers(lcenters->begin(), lcenters->end());
-  vector<my_vector*>* clusters = new vector<my_vector*> [k];
-  for (unsigned int j = 0; j < k; j++) {
-    for (my_vector* c: lclusters[j]) {//naive approach
-  	   clusters[j].push_back(c);
-  	}
-  }
+template<class T>
+list<double> *vectorizeandsilhouette(list<T*>* lclusters,list<T>* lcenters,unsigned int k,unsigned int n,double(*distance_metric)(T&, T&)){
+  vector<T> centers(lcenters->begin(), lcenters->end());
+  vector<T*> clusters;
+  list<double> *result;
+  std::cout << "kk" << '\n';
+  // for (T* c: (*lclusters)) {//naive approach
+	//    clusters.push_back(c);
+	// }
 
   //calls silhouette
-  silhouette(clusters,&centers,k,n,distance_metric);
-  // TODO delete
+  //result = silhouette(&clusters,&centers,k,n,distance_metric);
+  clusters.clear();
+  centers.clear();
+
+  return result;
 }
