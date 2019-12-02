@@ -101,8 +101,11 @@ my_vector* rangebinarysearch(double target,pair<double,my_vector*>* p,int r/*it 
   while (l <= r) {
         int m = l + (r - l) / 2;
         // Check if target is between p[m-1]<target<p[m]
-        if (p[m-1].first < target  && target <= p[m].first)
-            return p[m].second;
+        if (p[m-1].first < target  && target <= p[m].first){
+            my_vector* tmp=p[m].second;
+            delete[] p;
+            return tmp;
+        }
         // If target is greater, ignore left half
         if (p[m].first < target)
             l = m + 1;

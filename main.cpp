@@ -7,6 +7,8 @@
 #include <float.h>
 #include <algorithm>
 #include <random>
+#include <unistd.h>
+#include <string.h>
 
 #include "util.hpp"
 #include "my_vector.hpp"
@@ -73,19 +75,42 @@ list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k
 template list<double> * silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
 template list<double> * silhouette(vector<my_curve*>* clusters,vector<my_curve>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_curve&, my_curve&));
 
-int main(){
+int main(int argc, char** argv){
   srand (time(NULL));
-  string input_file="./Input/test.txt",out_file="my.out";
+  char input_file[100]("./Input/DataVectors_5_500x100.csv"),out_file[100]("my.out"),options_file[100]("cluster.conf");
   unsigned int k=4, max_iterations=50,lsh_window=6000,g_no=4,grids_no=4,container_sz=10,lsh_l=4,max_curve_sz=10;
-  bool vector_input=true,stop_when_centers=true,complete_flag=false;
+  bool vector_input=true,stop_when_centers=true;;
+  short int function_matrix[3],complete_flag=0;
   double center_tol=0.01,pad_number=99999.99999;
   my_curve::curve_tol=0.01;
   my_vector::vector_tol=0.01;
 
   cout<<"arxisame!!\n";
 
+  //------------------------------------parse arguments
+  int opt;
+  while((opt = getopt(argc, argv, "i:o:c:a:"))!=-1){
+    switch(opt){
+      case 'i':
+        strcpy(input_file,optarg);
+        break;
+      case 'o':
+        strcpy(out_file,optarg);
+        break;
+      case 'c':
+        strcpy(options_file,optarg);
+        break;
+      case 'a':
+        complete_flag=atoi(optarg);//FIXME not working
+        break;
+      default:
+        cout<<"!! WRONG ARGUMENTS !!\n";
+        exit(1);
+    }
+  }
+
 //-----------------------------------------------------read cluster.conf
-  ifstream infile("cluster.conf");
+  ifstream infile(options_file);
   char str[100];
   if (infile.good()){
     while(infile.getline(str,100)){
@@ -112,6 +137,7 @@ int main(){
   infile.close();
 
   k=4;
+  //cout parameters
   cout<<"starting parameters:"<<"\n\tnumber_of_clusters= "<<k<<"\n\tnumber_of_grids= "<<grids_no
   <<"\n\tlsh_l= "<<lsh_l<<"\n\tnumber_of_vector_hash_functions= "<<g_no<<"\n\tlsh_window= "<<lsh_window
   <<"\n\tvector_input= "<<vector_input<<"\n\tcontainer_sz= "<<container_sz<<"\n\tpad_number= "<<pad_number
@@ -140,87 +166,138 @@ int main(){
   lsh_model->train(data);
   cout<<"lsh training done\n";
 
-  list<my_vector> *old_centers;
-  list<my_vector> *centers=initialization1(data,k);//-----------initialization
+  list<my_vector> *old_centers,*centers;
+  list<my_vector*> *old_clusters,*clusters;
 
-  list<my_vector*> *old_clusters;
-  list<my_vector*> *clusters=assigment2(data,centers,k,lsh_model,manhattan_distance);//------------------------------assigment
-  //me tis epiloges gia initialization pou dini ipoti8ete oti ta cluster 8a exoun toulaxiston 1 simio
-  //kanonika 8a prepi na to ele3oume prin kalesoume assigment
+  unsigned int max_iterations_const=max_iterations;
 
-  unsigned int iteration=0;
-  while(max_iterations--!=0){
-    #if DEBUG
-    cout<<"\niteration="<<iteration<<endl;
-    #endif
+  for(function_matrix[0]=0;function_matrix[0]<=1;function_matrix[0]++){
+    for(function_matrix[1]=0;function_matrix[1]<=1;function_matrix[1]++){
+      for(function_matrix[2]=0;function_matrix[2]<=1;function_matrix[2]++){
 
-    old_centers=centers;
-    centers=update2(data, centers, clusters, k,get_vector_mean);//-----------------------update
+        //cout algorithms used
+        cout<<endl;
+        if(function_matrix[0])
+          cout<<"initialization1 + ";
+        else
+          cout<<"initialization2 + ";
+        if(function_matrix[1])
+          cout<<"assigment1 + ";
+        else
+          cout<<"assigment2 + ";
+        if(function_matrix[2])
+          cout<<"update1\n";
+        else
+          cout<<"update2\n";
+        cout<<endl;
 
-    // sin8iki break:: nea kentra konta sta palia
-    if(stop_when_centers)
-      if(old_centers_equal_new_centers(old_centers,centers,center_tol))
-        break;
-    old_centers->clear();
-    delete old_centers;
+        //-----------------------------------------------------------------------initialization
+        if(function_matrix[0])
+          centers=initialization1(data,k);
+        else
+          centers=initialization2(data,k);
 
-    old_clusters=clusters;
-    clusters=assigment2(data,centers,k,lsh_model,manhattan_distance);//----------------------------assigment
+        //-----------------------------------------------------------------------assigment
+        if(function_matrix[1])
+          clusters=assigment1(data,centers,k,manhattan_distance);
+        else
+          clusters=assigment2(data,centers,k,lsh_model,manhattan_distance);
+        //me tis epiloges gia initialization pou dini ipoti8ete oti ta cluster 8a exoun toulaxiston 1 simio
+        //kanonika 8a prepi na to ele3oume prin kalesoume assigment
 
-    //sin8iki break:: nea cluster idia me palia
-    if(!stop_when_centers)
-      if(old_clusters_equal_new_clusters(old_clusters,clusters,k))
-        break;
-    for(unsigned int i=0;i<k;i++)
-      old_clusters[i].clear();
-    delete[] old_clusters;
+        unsigned int iteration=0;
+        max_iterations=max_iterations_const;
+        while(max_iterations--!=0){
+          #if DEBUG
+          cout<<"\niteration="<<iteration<<endl;
+          #endif
 
-    if(max_iterations==1){
-      cout<<"max iterations reached\n";
-      break;
+          old_centers=centers;
+          //----------------------------------------------------------------------update
+          if(function_matrix[2])
+            centers=update1(data, centers, clusters,k,lsh_model,get_vector_mean,manhattan_distance);
+          else
+            centers=update2(data, centers, clusters,k,get_vector_mean);
+
+          // sin8iki break:: nea kentra konta sta palia
+          if(stop_when_centers)
+            if(old_centers_equal_new_centers(old_centers,centers,center_tol))
+              break;
+          //delete old_centers
+          old_centers->clear();
+          delete old_centers;
+
+          old_clusters=clusters;
+          //---------------------------------------------------------------------assigment
+          if(function_matrix[2])
+            clusters=assigment1(data,centers,k,manhattan_distance);
+          else
+            clusters=assigment2(data,centers,k,lsh_model,manhattan_distance);
+
+          //sin8iki break:: nea cluster idia me palia
+          if(!stop_when_centers)
+            if(old_clusters_equal_new_clusters(old_clusters,clusters,k))
+              break;
+          //delete old_clusters
+          for(unsigned int i=0;i<k;i++)
+            old_clusters[i].clear();
+          delete[] old_clusters;
+
+          //sin8iki break:: max iterations reached
+          if(max_iterations==1){
+            cout<<"max iterations reached\n";
+            break;
+          }
+          iteration++;
+        }
+
+        //-----------------------------------------------------------------------success
+        cout<<"success!!\niteration="<<++iteration<<endl;
+        cout<<"end centers\n";
+        for(auto i : *centers)
+          // i.print_vec();
+          cout<<i.id<<endl;
+        cout<<"clusters\n";
+        unsigned int ii=0;
+        for(unsigned int i=0;i<k;i++){
+          cout<<"\tcluster"<<++ii<<endl;
+          if(clusters[i].size()==0)
+            cout<<"cluster of size 0\n";
+          // for(auto* j : clusters[i])
+          //   j->print_vec();
+        }
+        //TODO 987897678y7Q($%$*^&%$^#%#@%$#^$&%$)
+        // list<double> *a = vectorizeandsilhouette(clusters,centers,centers->size(),data->size(),manhattan_distance);
+        // a->clear();
+        // delete a;
+
+
+        //deletes
+        if(max_iterations!=1){
+          if(stop_when_centers){
+            old_centers->clear();
+            delete old_centers;
+          }
+          else{
+            for(unsigned int i=0;i<k;i++)
+              old_clusters[i].clear();
+            delete[] old_clusters;
+          }
+        }
+        centers->clear();
+        delete centers;
+        for(unsigned int i=0;i<k;i++)
+          clusters[i].clear();
+        delete[] clusters;
+
+      }
     }
-    iteration++;
   }
-
-  cout<<"success!!\niteration="<<++iteration<<endl;
-  cout<<"end centers\n";
-  for(auto i : *centers)
-    i.print_vec();
-    // cout<<i.id<<endl;
-  cout<<"clusters\n";
-  unsigned int ii=0;
-  for(unsigned int i=0;i<k;i++){
-    cout<<"\tcluster"<<++ii<<endl;
-    if(clusters[i].size()==0)
-      cout<<"cluster of size 0\n";
-    for(auto* j : clusters[i])
-      j->print_vec();
-  }
-  //TODO 987897678y7Q($%$*^&%$^#%#@%$#^$&%$)
-  list<double> *a = vectorizeandsilhouette(clusters,centers,centers->size(),data->size(),manhattan_distance);
-  a->clear();
-  delete a;
-
-  if(max_iterations!=1){
-    if(stop_when_centers){
-      old_centers->clear();
-      delete old_centers;
-    }
-    else{
-      for(unsigned int i=0;i<k;i++)
-        old_clusters[i].clear();
-      delete[] old_clusters;
-    }
-  }
-  centers->clear();
-  delete centers;
-  for(unsigned int i=0;i<k;i++)
-    clusters[i].clear();
-  delete[] clusters;
 
   delete lsh_model;
   data->clear();
   delete data;
+
 
   cout<<"\n\nEND!!\n\n";
 
@@ -256,7 +333,7 @@ list<T>* initialization1(list <T>* data, unsigned int k){//8eli srand (time(NULL
 
   list <T>* centers=new list <T>;
   for(unsigned int i=0;i<k;i++)
-    centers->push_back(*next(data->begin(), random_numbers[i]%data->size()));
+    centers->push_front(*next(data->begin(), random_numbers[i]%data->size()));
 
   #if DEBUG
   cout<<"centers\n";
@@ -327,6 +404,7 @@ list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_m
 
   for(unsigned int i=0;i<k;i++){
     close_points[i]=lsh_model->find_bucket(*next(centers->begin(), i), distance_metric);
+    // close_points[i]->insert(hasher(&*next(centers->begin(), i)),next(centers->begin(), i));
     #if DEBUG
     cout<<"lsh buckets\n-----------"<<i<<endl;
     for (auto v : *close_points[i])
@@ -391,7 +469,7 @@ list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_m
           for(unsigned int ik=0;ik<k-1;ik++){
             for(unsigned int jk=0;jk<=ik;jk++){//search all the intersections
               if(intersection[ik][jk].find(hasher(v->second)) !=  intersection[ik][jk].end()){//if it exists in any of them find the min dist and the closest_center
-                tmp1=manhattan_distance(*next(centers->begin(), ik), *v->second);
+                tmp1=manhattan_distance(*next(centers->begin(), ik+1), *v->second);
                 tmp2=manhattan_distance(*next(centers->begin(), jk), *v->second);
                 if(tmp1<min_dist){
                   min_dist=tmp1;
@@ -526,7 +604,7 @@ list<T>* update2(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned i
   list<T>* new_centers=new list<T>;
 
   for(unsigned int i=0;i<k;i++)
-    if(clusters[k].size()!=0)
+    if(clusters[i].size()!=0)
       new_centers->push_back(get_mean(data->front().get_dimentions(),clusters[i]));
     else
       new_centers->push_back(*next(centers->begin(), i));
@@ -663,7 +741,7 @@ list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k
     #endif
 
     //create lower triangular matrix
-    if (clustersize<1) {
+    if (clustersize>1) {
       distarray = new double* [clustersize-1];//create distance array:for cluster
     }
     for (unsigned int v = 0; v<clustersize-1; v++) {//z:0->clustersize-2 , lenght clustersize-1
@@ -771,9 +849,9 @@ list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k
     result->push_back(clustercoef[i]);
   }
 
-  delete a;
-  delete b;
-  delete clustercoef;
+  // delete a;
+  // delete b;
+  // delete clustercoef;
 
   return result;
 }
@@ -783,15 +861,14 @@ list<double> *vectorizeandsilhouette(list<T*>* lclusters,list<T>* lcenters,unsig
   vector<T> centers(lcenters->begin(), lcenters->end());
   vector<T*> clusters;
   list<double> *result;
-  std::cout << "kk" << '\n';
-  // for (T* c: (*lclusters)) {//naive approach
-	//    clusters.push_back(c);
-	// }
+  for (T* c: (*lclusters)) {//naive approach
+	   clusters.push_back(c);
+	}
 
-  //calls silhouette
-  //result = silhouette(&clusters,&centers,k,n,distance_metric);
-  clusters.clear();
-  centers.clear();
+  // calls silhouette
+  result = silhouette(&clusters,&centers,k,n,distance_metric);
+  // clusters.clear();
+  // centers.clear();
 
   return result;
 }
