@@ -219,8 +219,7 @@ void lsh_curve::train(list<pair<my_curve*, my_vector*>> *train_data_set){
 }
 
 pair<my_curve*, double> lsh_curve::find_NN(pair<my_curve*,my_vector*> &query,
-                  double (*distance_metric_curve)(my_curve&, my_curve&, double(*distance_metric_vector)(my_vector&, my_vector&)),
-                  double(*distance_metric_vector)(my_vector&, my_vector&)){
+                  double (*distance_metric_curve)(my_curve&, my_curve&)){
   #if DEBUG
   cout<<"entering lsh_curve::find_NN\n";
   #endif
@@ -229,7 +228,7 @@ pair<my_curve*, double> lsh_curve::find_NN(pair<my_curve*,my_vector*> &query,
   for(unsigned int i=0;i<l;i++){
     auto range = hash_table[i]->equal_range(table_g_i[i]->get_g_x(*query.second));//returns all possible NNs
     for(auto it = range.first; it != range.second; ++it){
-      double tmp=distance_metric_curve(*query.first,*it->second.first,distance_metric_vector);
+      double tmp=distance_metric_curve(*query.first,*it->second.first);
       if(minn>tmp){//if this is a better neighbor
         minn=tmp;
         ans=it->second.first;

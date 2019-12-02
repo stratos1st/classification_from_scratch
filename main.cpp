@@ -21,48 +21,48 @@ using namespace std;
 #define DEBUG 0
 
 template<class T>
-list<T>* initialization1(list <T>* data, unsigned int k);
-template list<my_vector>* initialization1<>(list <my_vector>* data, unsigned int k);
-template list<my_curve>* initialization1<>(list <my_curve>* data, unsigned int k);
+vector<T>* initialization1(vector <T>* data, unsigned int k);
+template vector<my_vector>* initialization1<>(vector <my_vector>* data, unsigned int k);
+template vector<my_curve>* initialization1<>(vector <my_curve>* data, unsigned int k);
 
 template<class T>
-list<T*>* assigment1(list<T>* data, list<T>* centers, unsigned int k, double(*distance_metric)(T&, T&));
-template list<my_vector*>* assigment1(list<my_vector>* data, list<my_vector>* centers, unsigned int k, double(*distance_metric)(my_vector&, my_vector&));
-template list<my_curve*>* assigment1(list<my_curve>* data, list<my_curve>* centers, unsigned int k, double(*distance_metric)(my_curve&, my_curve&));
+vector<T*>* assigment1(vector<T>* data, vector<T>* centers, unsigned int k, double(*distance_metric)(T&, T&));
+template vector<my_vector*>* assigment1<>(vector<my_vector>* data, vector<my_vector>* centers, unsigned int k, double(*distance_metric)(my_vector&, my_vector&));
+template vector<my_curve*>* assigment1<>(vector<my_curve>* data, vector<my_curve>* centers, unsigned int k, double(*distance_metric)(my_curve&, my_curve&));
 
 template<class T>
-list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_model, double(*distance_metric)(T&, T&));
-list<my_vector*>* assigment2(list<my_vector>* data, list<my_vector>* centers, unsigned int k, lsh_vector* lsh_model, double(*distance_metric)(my_vector&, my_vector&));
-list<my_curve*>* assigment2(list<my_curve>* data, list<my_curve>* centers, unsigned int k, lsh_curve* lsh_model, double(*distance_metric)(my_curve&, my_curve&));
+vector<T*>* assigment2(vector<T>* data, vector<T>* centers, unsigned int k, lsh* lsh_model, double(*distance_metric)(T&, T&));
+template vector<my_vector*>* assigment2<>(vector<my_vector>* data, vector<my_vector>* centers, unsigned int k, lsh* lsh_model, double(*distance_metric)(my_vector&, my_vector&));
+template vector<my_curve*>* assigment2<>(vector<my_curve>* data, vector<my_curve>* centers, unsigned int k, lsh* lsh_model, double(*distance_metric)(my_curve&, my_curve&));
 
 template<class T>
-list<T>* update1(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned int k, lsh* lsh_model,
-                           T(*get_mean)(unsigned int, list<T*>&), double(*distance_metric)(T&, T&));
-template list<my_vector>* update1(list<my_vector>* data, list<my_vector>* centers, list<my_vector*> *clusters, unsigned int k, lsh* lsh_model,
-                          my_vector(*get_mean)(unsigned int, list<my_vector*>&), double(*distance_metric)(my_vector&, my_vector&));
-template list<my_curve>* update1(list<my_curve>* data, list<my_curve>* centers, list<my_curve*> *clusters, unsigned int k, lsh* lsh_model,
-                          my_curve(*get_mean)(unsigned int, list<my_curve*>&), double(*distance_metric)(my_curve&, my_curve&));
+vector<T>* update1(vector<T>* data, vector<T>* centers, vector<T*> *clusters, unsigned int k, lsh* lsh_model,
+                           T(*get_mean)(unsigned int, vector<T*>&), double(*distance_metric)(T&, T&));
+template vector<my_vector>* update1<>(vector<my_vector>* data, vector<my_vector>* centers, vector<my_vector*> *clusters, unsigned int k, lsh* lsh_model,
+                          my_vector(*get_mean)(unsigned int, vector<my_vector*>&), double(*distance_metric)(my_vector&, my_vector&));
+template vector<my_curve>* update1<>(vector<my_curve>* data, vector<my_curve>* centers, vector<my_curve*> *clusters, unsigned int k, lsh* lsh_model,
+                          my_curve(*get_mean)(unsigned int, vector<my_curve*>&), double(*distance_metric)(my_curve&, my_curve&));
 
 template<class T>
-list<T>* update2(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned int k, T(*get_mean)(unsigned int, list<T*>&));
-template list<my_vector>* update2(list<my_vector>* data, list<my_vector>* centers, list<my_vector*> *clusters, unsigned int k, my_vector(*get_mean)(unsigned int, list<my_vector*>&));
-template list<my_curve>* update2(list<my_curve>* data, list<my_curve>* centers, list<my_curve*> *clusters, unsigned int k, my_curve(*get_mean)(unsigned int, list<my_curve*>&));
+vector<T>* update2(vector<T>* data, vector<T>* centers, vector<T*> *clusters, unsigned int k, T(*get_mean)(unsigned int, vector<T*>&));
+template vector<my_vector>* update2<>(vector<my_vector>* data, vector<my_vector>* centers, vector<my_vector*> *clusters, unsigned int k, my_vector(*get_mean)(unsigned int, vector<my_vector*>&));
+template vector<my_curve>* update2<>(vector<my_curve>* data, vector<my_curve>* centers, vector<my_curve*> *clusters, unsigned int k, my_curve(*get_mean)(unsigned int, vector<my_curve*>&));
 
-my_curve get_curve_mean(unsigned int dimentions, list<my_curve*> &cluster);
-my_vector get_vector_mean(unsigned int dimentions, list<my_vector*> &cluster);
+my_curve get_curve_mean(unsigned int dimentions, vector<my_curve*> &cluster);
+my_vector get_vector_mean(unsigned int dimentions, vector<my_vector*> &cluster);
 
-double list_diff(list<my_vector> *list1, list<my_vector> *list2);
-double list_diff(list<my_curve> *list1, list<my_curve> *list2);
-
-template<class T>
-bool old_centers_equal_new_centers(list<T> *old_centers,  list<T> *new_centers, double tolerance);
-template bool old_centers_equal_new_centers(list<my_vector> *old_centers,  list<my_vector> *new_centers, double tolerance);
-template bool old_centers_equal_new_centers(list<my_curve> *old_centers,  list<my_curve> *new_centers, double tolerance);
+double vector_diff(vector<my_vector> *vector1, vector<my_vector> *vector2);
+double vector_diff(vector<my_curve> *vector1, vector<my_curve> *vector2);
 
 template<class T>
-bool old_clusters_equal_new_clusters(list<T*> *old_clusters,  list<T*> *new_clusters, unsigned int k);
-template bool old_clusters_equal_new_clusters(list<my_vector*> *old_clusters,  list<my_vector*> *new_clusters, unsigned int k);
-template bool old_clusters_equal_new_clusters(list<my_curve*> *old_clusters,  list<my_curve*> *new_clusters, unsigned int k);
+bool old_centers_equal_new_centers(vector<T> *old_centers,  vector<T> *new_centers, double tolerance);
+template bool old_centers_equal_new_centers<>(vector<my_vector> *old_centers,  vector<my_vector> *new_centers, double tolerance);
+template bool old_centers_equal_new_centers<>(vector<my_curve> *old_centers,  vector<my_curve> *new_centers, double tolerance);
+
+template<class T>
+bool old_clusters_equal_new_clusters(vector<T*> *old_clusters,  vector<T*> *new_clusters, unsigned int k);
+template bool old_clusters_equal_new_clusters<>(vector<my_vector*> *old_clusters,  vector<my_vector*> *new_clusters, unsigned int k);
+template bool old_clusters_equal_new_clusters<>(vector<my_curve*> *old_clusters,  vector<my_curve*> *new_clusters, unsigned int k);
 
 
 //filippos was here
@@ -148,27 +148,41 @@ int main(int argc, char** argv){
   <<"\n\tout_file= "<<out_file<<"\n\tcomplete_flag= "<<complete_flag<<endl;
 
 ////-----------------------------------------------------read input file
-  list <my_vector>* data=read_vector_file(input_file);
-  // list <my_vector>* data=read_vector_file("./Input/DataVectors_5_500x100.csv");
+  // list <my_vector>* data_tmp=read_vector_file(input_file);
+  list <my_curve>* data_tmp=read_curve_file(input_file);
+
   cout<<"reading done\n";
   #if DEBUG
   cout<<"data\n";
-  for(auto i : *data)
+  for(auto i : *data_tmp)
     i.print_vec();
   #endif
 
   lsh *lsh_model;
-  if(vector_input)
-    lsh_model=new lsh_vector(data->front().get_dimentions(),lsh_l,lsh_window,grids_no,container_sz);
-  else
-    lsh_model=new lsh_curve(data->front().get_dimentions(),max_curve_sz,lsh_l,lsh_window,grids_no,pad_number,container_sz);
+  double (*distance_metric)(my_curve&,my_curve&);
+  my_curve (*mean_function)(unsigned int, vector<my_curve*> &);
+  if(vector_input){
+    lsh_model=new lsh_vector(data_tmp->front().get_dimentions(),lsh_l,lsh_window,grids_no,container_sz);
+    //distance_metric=manhattan_distance;
+    // mean_function=get_vector_mean;
+  }
+  else{
+    lsh_model=new lsh_curve(data_tmp->front().get_dimentions(),max_curve_sz,lsh_l,lsh_window,grids_no,pad_number,container_sz);
+    distance_metric=Dtw;
+    mean_function=get_curve_mean;
+  }
 
-  lsh_model->train(data);
+  lsh_model->train(data_tmp);
   cout<<"lsh training done\n";
 
-  list<my_vector> *old_centers,*centers;
-  list<my_vector*> *old_clusters,*clusters;
+  vector<my_curve>* data=new vector<my_curve>;
+  for(auto i: *data_tmp)
+    data->push_back(i);
+  data_tmp->clear();
+  delete data_tmp;
 
+  vector<my_curve> *old_centers,*centers;
+  vector<my_curve*> *old_clusters,*clusters;
   unsigned int max_iterations_const=max_iterations;
 
   for(function_matrix[0]=0;function_matrix[0]<=1;function_matrix[0]++){
@@ -195,13 +209,13 @@ int main(int argc, char** argv){
         if(function_matrix[0])
           centers=initialization1(data,k);
         else
-          centers=initialization2(data,k);
+          centers=initialization1(data,k);
 
         //-----------------------------------------------------------------------assigment
         if(function_matrix[1])
-          clusters=assigment1(data,centers,k,manhattan_distance);
+          clusters=assigment1(data,centers,k,distance_metric);
         else
-          clusters=assigment2(data,centers,k,lsh_model,manhattan_distance);
+          clusters=assigment2(data,centers,k,lsh_model,distance_metric);
         //me tis epiloges gia initialization pou dini ipoti8ete oti ta cluster 8a exoun toulaxiston 1 simio
         //kanonika 8a prepi na to ele3oume prin kalesoume assigment
 
@@ -215,9 +229,9 @@ int main(int argc, char** argv){
           old_centers=centers;
           //----------------------------------------------------------------------update
           if(function_matrix[2])
-            centers=update1(data, centers, clusters,k,lsh_model,get_vector_mean,manhattan_distance);
+            centers=update1(data, centers, clusters,k,lsh_model,mean_function,distance_metric);
           else
-            centers=update2(data, centers, clusters,k,get_vector_mean);
+            centers=update2(data, centers, clusters,k,mean_function);
 
           // sin8iki break:: nea kentra konta sta palia
           if(stop_when_centers)
@@ -230,9 +244,9 @@ int main(int argc, char** argv){
           old_clusters=clusters;
           //---------------------------------------------------------------------assigment
           if(function_matrix[2])
-            clusters=assigment1(data,centers,k,manhattan_distance);
+            clusters=assigment1(data,centers,k,distance_metric);
           else
-            clusters=assigment2(data,centers,k,lsh_model,manhattan_distance);
+            clusters=assigment2(data,centers,k,lsh_model,distance_metric);
 
           //sin8iki break:: nea cluster idia me palia
           if(!stop_when_centers)
@@ -305,7 +319,7 @@ int main(int argc, char** argv){
 }
 
 template<class T>
-bool old_clusters_equal_new_clusters(list<T*> *old_clusters, list<T*> *new_clusters, unsigned int k){
+bool old_clusters_equal_new_clusters(vector<T*> *old_clusters, vector<T*> *new_clusters, unsigned int k){
   for(unsigned int i=0;i<k;i++)
     if(old_clusters[i]!=new_clusters[i])
       return false;
@@ -313,12 +327,12 @@ bool old_clusters_equal_new_clusters(list<T*> *old_clusters, list<T*> *new_clust
 }
 
 template<class T>
-bool old_centers_equal_new_centers(list<T> *old_centers,  list<T> *new_centers, double tolerance){
+bool old_centers_equal_new_centers(vector<T> *old_centers,  vector<T> *new_centers, double tolerance){
   return list_diff(old_centers,new_centers)<tolerance;
 }
 
 template<class T>
-list<T>* initialization1(list <T>* data, unsigned int k){//8eli srand (time(NULL)); apo tin main na kalesti
+vector<T>* initialization1(vector <T>* data, unsigned int k){//8eli srand (time(NULL)); apo tin main na kalesti
   // --------------------------------------------------------------------initialization 1 ( nomizo afto lei)
   #if DEBUG
   cout<<"initialization1\n";
@@ -328,12 +342,11 @@ list<T>* initialization1(list <T>* data, unsigned int k){//8eli srand (time(NULL
   vector<int> random_numbers;
   for(unsigned int i=0; i<data->size(); i++)
       random_numbers.push_back(i);
-  unsigned seed = time(NULL);
-  shuffle(random_numbers.begin(), random_numbers.end(), std::default_random_engine(seed));
+  random_shuffle(random_numbers.begin(), random_numbers.end());
 
-  list <T>* centers=new list <T>;
+  vector <T>* centers=new vector <T>;
   for(unsigned int i=0;i<k;i++)
-    centers->push_front(*next(data->begin(), random_numbers[i]%data->size()));
+    centers->push_back(data->at(random_numbers[i]%data->size()));
 
   #if DEBUG
   cout<<"centers\n";
@@ -344,12 +357,12 @@ list<T>* initialization1(list <T>* data, unsigned int k){//8eli srand (time(NULL
 }
 
 template<class T>
-list<T*>* assigment1(list<T>* data, list<T>* centers, unsigned int k, double(*distance_metric)(T&, T&)){
+vector<T*>* assigment1(vector<T>* data, vector<T>* centers, unsigned int k, double(*distance_metric)(T&, T&)){
   // --------------------------------------------------------------------asigment 1 (nomizo enoi brute force)
   #if DEBUG
   cout<<"assigment1\n";
   #endif
-  list<T*> *clusters=new list<T*>[k];
+  vector<T*> *clusters=new vector<T*>[k];
   unsigned int cluster_no=0, best_cluster=0;
   double minn=DBL_MAX,tmp=0.0;
   for(auto &i : *data){
@@ -392,19 +405,18 @@ list<T*>* assigment1(list<T>* data, list<T>* centers, unsigned int k, double(*di
 }
 
 template<class T>
-list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_model, double(*distance_metric)(T&, T&)){
+vector<T*>* assigment2(vector<T>* data, vector<T>* centers, unsigned int k, lsh* lsh_model, double(*distance_metric)(T&, T&)){
 // --------------------------------------------------------------------asigment 2
   #if DEBUG
   cout<<"assigment2\n";
   #endif
-  list<T*> *clusters=new list<T*>[k];
+  vector<T*> *clusters=new vector<T*>[k];
   hash<T*> hasher;
 
   unordered_map<unsigned int, T*> *close_points[k];
 
   for(unsigned int i=0;i<k;i++){
-    close_points[i]=lsh_model->find_bucket(*next(centers->begin(), i), distance_metric);
-    // close_points[i]->insert(hasher(&*next(centers->begin(), i)),next(centers->begin(), i));
+    close_points[i]=lsh_model->find_bucket(centers->at(i), distance_metric);
     #if DEBUG
     cout<<"lsh buckets\n-----------"<<i<<endl;
     for (auto v : *close_points[i])
@@ -469,8 +481,8 @@ list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_m
           for(unsigned int ik=0;ik<k-1;ik++){
             for(unsigned int jk=0;jk<=ik;jk++){//search all the intersections
               if(intersection[ik][jk].find(hasher(v->second)) !=  intersection[ik][jk].end()){//if it exists in any of them find the min dist and the closest_center
-                tmp1=manhattan_distance(*next(centers->begin(), ik+1), *v->second);
-                tmp2=manhattan_distance(*next(centers->begin(), jk), *v->second);
+                tmp1=distance_metric(centers->at(ik+1), *v->second);
+                tmp2=distance_metric(centers->at(jk), *v->second);
                 if(tmp1<min_dist){
                   min_dist=tmp1;
                   closest_center=ik+1;
@@ -514,7 +526,7 @@ list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_m
   for (auto v=left_to_classify.begin();v!=left_to_classify.end();){//for every element in left_to_classify
     min_dist=DBL_MAX;
     for(unsigned int i=0;i<k;i++){//check all the centers
-      tmp1=manhattan_distance(*v->second, *next(centers->begin(),i));
+      tmp1=distance_metric(*v->second, centers->at(i));
       if(min_dist>tmp1){//find the cosest
         min_dist=tmp1;
         closest_center=i;
@@ -568,13 +580,13 @@ list<T*>* assigment2(list<T>* data, list<T>* centers, unsigned int k, lsh* lsh_m
 
 //TODO make update1 brute force
 template<class T>
-list<T>* update1(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned int k, lsh* lsh_model,
-                           T(*get_mean)(unsigned int, list<T*>&), double(*distance_metric)(T&, T&)){//nomizo oti ine afto. afto ine genika kalo ke to kratame gt maresi san bonus
+vector<T>* update1(vector<T>* data, vector<T>* centers, vector<T*> *clusters, unsigned int k, lsh* lsh_model,
+                           T(*get_mean)(unsigned int, vector<T*>&), double(*distance_metric)(T&, T&)){//nomizo oti ine afto. afto ine genika kalo ke to kratame gt maresi san bonus
   // --------------------------------------------------------------------update 1
   #if DEBUG
   cout<<"update1\n";
   #endif
-  list<T>* new_centers=new list<T>;
+  vector<T>* new_centers=new vector<T>;
 
   for(unsigned int i=0;i<k;i++)
     if(clusters[i].size()!=0){
@@ -587,7 +599,7 @@ list<T>* update1(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned i
       new_centers->push_back(*tmp.first);
     }
     else
-      new_centers->push_back(*next(centers->begin(), i));
+      new_centers->push_back(centers->at(i));
 
   #if DEBUG
   cout<<"updated centers\n";
@@ -599,15 +611,15 @@ list<T>* update1(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned i
 }
 
 template<class T>
-list<T>* update2(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned int k, T(*get_mean)(unsigned int, list<T*>&)){
+vector<T>* update2(vector<T>* data, vector<T>* centers, vector<T*> *clusters, unsigned int k, T(*get_mean)(unsigned int, vector<T*>&)){
   // --------------------------------------------------------------------update 2 (nomizo enoi brute force)
-  list<T>* new_centers=new list<T>;
+  vector<T>* new_centers=new vector<T>;
 
   for(unsigned int i=0;i<k;i++)
     if(clusters[i].size()!=0)
       new_centers->push_back(get_mean(data->front().get_dimentions(),clusters[i]));
     else
-      new_centers->push_back(*next(centers->begin(), i));
+      new_centers->push_back(centers->at(i));
 
   #if DEBUG
   cout<<"updated centers\n";
@@ -618,7 +630,7 @@ list<T>* update2(list<T>* data, list<T>* centers, list<T*> *clusters, unsigned i
   return new_centers;
 }
 
-my_curve get_curve_mean(unsigned int dimentions, list<my_curve*> &cluster){//DEN prepi to cluster na ine 0!!
+my_curve get_curve_mean(unsigned int dimentions, vector<my_curve*> &cluster){//DEN prepi to cluster na ine 0!!
   #if DEBUG
   cout<<"get_curve_mean\n";
   #endif
@@ -641,7 +653,7 @@ my_curve get_curve_mean(unsigned int dimentions, list<my_curve*> &cluster){//DEN
     }
 
   my_curve *c2;
-  list<my_vector*>* a=new list<my_vector*>[l];
+  vector<my_vector*>* a=new vector<my_vector*>[l];
   list<pair<unsigned int,unsigned int>>* ipairs;
   while(1){
     c2=c;
@@ -656,18 +668,18 @@ my_curve get_curve_mean(unsigned int dimentions, list<my_curve*> &cluster){//DEN
       *c->vectors[i]=get_vector_mean(dimentions,a[i]);
     if(*c2==*c)
       break;
-    delete c2;
+    //delete c2;
   }
 
-  delete c2;
+  //delete c2;
   for(unsigned int i=0;i<l;i++)
     a[i].clear();
-  delete a;
+  delete[] a;
 
   return *c;
 }
 
-my_vector get_vector_mean(unsigned int dimentions, list<my_vector*> &cluster){//DEN prepi to cluster na ine 0!!
+my_vector get_vector_mean(unsigned int dimentions, vector<my_vector*> &cluster){//DEN prepi to cluster na ine 0!!
   #if DEBUG
   cout<<"get_vector_mean\n";
   #endif
@@ -686,27 +698,34 @@ my_vector get_vector_mean(unsigned int dimentions, list<my_vector*> &cluster){//
   return average;
 }
 
-double list_diff(list<my_vector> *list1, list<my_vector> *list2){
+double list_diff(vector<my_vector> *list1, vector<my_vector> *list2){
   double maxx=0;
-  list<my_vector>::iterator i=list1->begin();
+  vector<my_vector>::iterator i=list1->begin();
+
+  if(list1->size()!=list2->size()){
+    cerr<<"\n\n!!error list_diff vectors !=size !!\n\n";
+    exit(1);
+  }
 
   for(my_vector j : *list2){
-    for(unsigned int k=0;k<i->get_dimentions();k++)
-      maxx=max(abs(i->coordinates[k]-j.coordinates[k]),maxx);
+    maxx=max(manhattan_distance(*i,j),maxx);
     i++;
   }
   return maxx;
 }
 
-double list_diff(list<my_curve> *list1, list<my_curve> *list2){
+double list_diff(vector<my_curve> *list1, vector<my_curve> *list2){
   double maxx=0;
-  list<my_curve>::iterator i=list1->begin();
+  vector<my_curve>::iterator i=list1->begin();
 
-  for(my_curve j : *list2){
-    for(unsigned int l=0;l<i->numofvectors;l++)
-      for(unsigned int k=0;k<i->get_dimentions();k++)
-        maxx=max(abs(i->vectors[l]->coordinates[k]-j.vectors[l]->coordinates[k]),maxx);
-    i++;
+  if(list1->size()!=list2->size()){
+    cerr<<"\n\n!!error list_diff curves !=size !!\n\n";
+    exit(1);
+  }
+
+  for(my_curve& j : *list2){
+    maxx=max(Dtw(*i,j),maxx);
+    ++i;
   }
   return maxx;
 }

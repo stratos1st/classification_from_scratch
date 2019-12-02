@@ -69,8 +69,7 @@ class lsh_curve:public lsh{
     void train(std::list <std::pair<my_curve*,my_vector*>> *train_data_set);
     std::pair<my_curve*, double> find_NN(my_curve &query, double (*distance_metric_curve)(my_curve&, my_curve&));
     std::pair<my_curve*, double> find_NN(std::pair<my_curve*,my_vector*> &query,
-                    double (*distance_metric_curve)(my_curve&, my_curve&, double(*distance_metric_vector)(my_vector&, my_vector&))=Dtw,
-                    double(*distance_metric_vector)(my_vector&, my_vector&)=manhattan_distance);
+                    double (*distance_metric_curve)(my_curve&, my_curve&));
     std::unordered_map<unsigned int, my_curve*>* find_bucket(my_curve &query, double (*distance_metric)(my_curve&, my_curve&));
 
 };

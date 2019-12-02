@@ -57,7 +57,7 @@ list <pair<unsigned int,unsigned int>>* MinMatching( my_curve& x, my_curve& y){/
   return result;
 }
 
-double Dtw( my_curve& x, my_curve& y, double(*distance_metric)(my_vector&, my_vector&)){
+double Dtw( my_curve& x, my_curve& y){
   unsigned int n=x.numofvectors,m=y.numofvectors;
   double OptValue [n+1][m+1];  // where the value of Dtw will be stored
 
@@ -70,7 +70,7 @@ double Dtw( my_curve& x, my_curve& y, double(*distance_metric)(my_vector&, my_ve
   //implementing the iterative algorithm to fill OptValue
   for(unsigned int i=1;i<=n;i++)
     for(unsigned int j=1;j<=m;j++)
-      OptValue[i][j]=min(min(OptValue[i][j-1],OptValue[i-1][j]),OptValue[i-1][j-1])+distance_metric(x.get_vector(i-1), y.get_vector(j-1));
+      OptValue[i][j]=min(min(OptValue[i][j-1],OptValue[i-1][j]),OptValue[i-1][j-1])+manhattan_distance(x.get_vector(i-1), y.get_vector(j-1));
   //manhattan_distance is iterchangable with other norms
   return OptValue[n][m];
 }
