@@ -92,7 +92,7 @@ double manhattan_distance(my_vector& a, my_vector& b){
   return ans;
 }
 
-list <my_vector>*read_vector_file(string name){
+list <my_vector>*read_vector_file(string name, unsigned int max_curve_points){
   list <my_vector> *data=new list <my_vector>;
   ifstream infile(name);
   double num;
