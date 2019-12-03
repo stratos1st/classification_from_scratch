@@ -59,16 +59,22 @@ unsigned int my_vector::get_dimentions() const{
 }
 
 void my_vector::print_vec(unsigned int until) const{
+  #if DEBUG
   cout<<get_dimentions()<<"d vector "<<id<<" = ";
+  #endif
   if(until>get_dimentions()){
     cerr<<"!! ERROR print_vec";
     return;
   }
   if(until==0)
     until=get_dimentions();
+  cout<<"[";
   for(unsigned int i=0;i<until;i++)
-    cout<<coordinates[i]<<", ";
+    cout<<coordinates[i]<<",";
+  cout<<"]"<<flush;
+  #if DEBUG
   cout<<endl;
+  #endif
 }
 
 bool my_vector::operator==(const my_vector &other){

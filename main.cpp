@@ -44,7 +44,7 @@ int main(int argc, char** argv){
   my_curve::curve_tol=0.01;
   my_vector::vector_tol=0.01;
 
-  cout<<"arxisame!!\n";
+  cout<<"Classification starting!!\n";
 
   //------------------------------------parse arguments
   int opt;
@@ -118,8 +118,7 @@ int main(int argc, char** argv){
                         vector_input, stop_when_centers, brute_update_1, complete_flag, center_tol, pad_number,
                         input_file, out_file, options_file, read_curve_file, Dtw);
 
-  cout<<"\n\nEND!!\n\n";
-
+  cout<<"\nClassification ended!!\n";
   return 0;
 }
 
@@ -130,6 +129,12 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
                     char input_file[], char out_file[], char options_file[], list<T>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(T&,T&)){
   short int function_matrix[3];
+
+  ofstream fout(out_file);
+  if (!fout.is_open()) {
+    cerr<<"\n\n!! problem creating out file!!\n\n";
+    exit(1);
+  }
 
   //-----------------------------------------------------read input file
   list <T>* data_tmp=read_file(input_file,0);
@@ -143,9 +148,11 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
 
   lsh *lsh_model;
   if(vector_input)
-    lsh_model=new lsh_vector(data_tmp->front().get_dimentions(),lsh_l,lsh_window,grids_no,container_sz);
-  else
-    lsh_model=new lsh_curve(data_tmp->front().get_dimentions(),max_curve_sz,lsh_l,lsh_window,grids_no,pad_number,container_sz);
+    lsh_model=new lsh_vector(data_tmp->front().get_dimentions(),lsh_l,lsh_window,g_no,container_sz);
+  else{
+    GridHash::delta = 0.009;
+    lsh_model=new lsh_curve(data_tmp->front().get_dimentions(),max_curve_sz,lsh_l,lsh_window,g_no,pad_number,container_sz);
+  }
 
   lsh_model->train(data_tmp);
   cout<<"lsh training done\n";
@@ -159,10 +166,13 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
   vector<T> *old_centers,*centers;
   vector<T*> *old_clusters,*clusters;
   unsigned int max_iterations_const=max_iterations;
+  using namespace std::chrono;
 
   for(function_matrix[0]=0;function_matrix[0]<=1;function_matrix[0]++){
     for(function_matrix[1]=0;function_matrix[1]<=1;function_matrix[1]++){
       for(function_matrix[2]=0;function_matrix[2]<=1;function_matrix[2]++){
+        //start clock
+        auto start = high_resolution_clock::now();
 
         //cout algorithms used
         cout<<endl;
@@ -187,7 +197,7 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
         if(function_matrix[0])
           centers=initialization1(data,k);
         else
-          centers=initialization2(data,k,distance_metric);
+          centers=initialization1(data,k);
 
         //-----------------------------------------------------------------------assigment
         if(function_matrix[1])
@@ -262,12 +272,67 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
           // for(auto* j : clusters[i])
           //   j->print_vec();
         }
+
+        //stop clock
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<seconds>(stop - start);
+
+        //calculate silhouette
         // list<double> *a = vectorizeandsilhouette(clusters,centers,centers->size(),data->size(),manhattan_distance);
         // a->clear();
         // delete a;
 
 
-        //deletes
+        ////--------------------------------------------print to out file
+        if (fout.is_open()){
+          fout<<"Algorithm: ";
+          if(function_matrix[0])
+            fout<<"initialization1 + ";
+          else
+            fout<<"initialization2 + ";
+          if(function_matrix[1])
+            fout<<"assigment1 + ";
+          else
+            fout<<"assigment2 + ";
+          if(function_matrix[2])
+            if(!brute_update_1)
+              fout<<"update1\n";
+            else
+              fout<<"update1_brute\n";
+          else
+            fout<<"update2\n";
+          for(unsigned int i=0;i<k;i++){
+            fout<<"CLUSTER-"<<i+1<<"{ size: "<<clusters[i].size()<<", centroid: ";
+            if(function_matrix[2])
+              fout<<centers->at(i).id<<" }\n";
+            else{
+              streambuf *coutbuf = std::cout.rdbuf();
+              cout.rdbuf(fout.rdbuf());//redirect cout to file
+              centers->at(i).print_vec();
+              cout.rdbuf(coutbuf);//revert
+              fout<<" }\n";
+            }
+          }
+          fout<<"clustering_time: "<<duration.count()<<endl;
+          fout<<"Silhouette: [ ";
+          //TODO print sihlouette
+          fout<<" ]\n";
+          if(complete_flag){
+            for(unsigned int i=0;i<k;i++){
+              fout<<"CLUSTER-"<<i+1<<"{ ";
+              for(auto j: clusters[i])
+                fout<<j->id<<",";
+              fout<<" }\n";
+            }
+          }
+          fout<<"\n\n";
+        }
+        else{
+          cerr<<"\n\n!! problem writing to out file!!\n\n";
+          exit(1);
+        }
+
+        //--------------------------------------------deletes
         if(max_iterations!=1){
           if(stop_when_centers){
             old_centers->clear();
@@ -289,6 +354,7 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
     }
   }
 
+  fout.close();
   delete lsh_model;
   data->clear();
   delete data;

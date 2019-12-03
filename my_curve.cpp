@@ -89,17 +89,23 @@ unsigned int my_curve::get_dimentions() const{
 }
 
 void my_curve::print_vec(unsigned int until){
+  #if DEBUG
   cout<<numofvectors<<" curve "<<id<<endl;
+  #endif
   if(until>numofvectors){
     cerr<<"!! ERROR print_vec";
     return;
   }
   if(until==0)
     until=numofvectors;
+  cout<<"[";
   for(unsigned int i=0;i<until;i++){
-    cout<<"\t";
+    cout<<"(";
     vectors[i]->print_vec();
-    cout<<", ";
+    cout<<"),";
   }
+  cout<<"]";
+  #if DEBUG
   cout<<endl;
+  #endif
 }

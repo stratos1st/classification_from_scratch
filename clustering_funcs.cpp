@@ -382,11 +382,21 @@ vector<T>* update1(vector<T>* data, vector<T>* centers, vector<T*> *clusters, un
     if(clusters[i].size()!=0){
       T average(get_mean(data->front().get_dimentions(),clusters[i]));
       pair<T*,double> tmp=lsh_model->find_NN(average, distance_metric);
-      if(tmp.second==DBL_MAX){//TODO what to do if lsh cant find options: brute force
-        cerr<<"wrong lsh arguments!! no NN found!!\n\n";
-        exit(1);
+      if(tmp.second==DBL_MAX){
+        #if DEBUG
+        cerr<<"wrong lsh arguments!! no NN found!! going brute\n";
+        #endif
+        vector<T> *center_tmp=new vector<T>;
+        center_tmp->push_back(centers->at(i));
+        vector<T>* tmp_vec=update1_brute(data,center_tmp,&clusters[i],1,distance_metric);
+        new_centers->push_back(tmp_vec->at(0));
+        tmp_vec->clear();
+        delete tmp_vec;
+        center_tmp->clear();
+        delete center_tmp;
       }
-      new_centers->push_back(*tmp.first);
+      else
+        new_centers->push_back(*tmp.first);
     }
     else
       new_centers->push_back(centers->at(i));
