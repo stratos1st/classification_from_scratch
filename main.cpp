@@ -19,17 +19,17 @@ using namespace std;
 
 template<class T>
 void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int lsh_window, unsigned int g_no,
-                    unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz,
+                    unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz, double grid_delta,
                     bool vector_input, bool stop_when_centers, bool brute_update_1, short int complete_flag, double center_tol, double pad_number,
                     char input_file[], char out_file[], char options_file[], list<T>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(T&,T&));
 template void run_algorithms<>(unsigned int k, unsigned int max_iterations, unsigned int lsh_window, unsigned int g_no,
-                    unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz,
+                    unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz, double grid_delta,
                     bool vector_input, bool stop_when_centers, bool brute_update_1, short int complete_flag, double center_tol, double pad_number,
                     char input_file[], char out_file[], char options_file[], list<my_vector>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(my_vector&,my_vector&));
 template void run_algorithms<>(unsigned int k, unsigned int max_iterations, unsigned int lsh_window, unsigned int g_no,
-                    unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz,
+                    unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz, double grid_delta,
                     bool vector_input, bool stop_when_centers, bool brute_update_1, short int complete_flag, double center_tol, double pad_number,
                     char input_file[], char out_file[], char options_file[], list<my_curve>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(my_curve&,my_curve&));
@@ -40,7 +40,7 @@ int main(int argc, char** argv){
   unsigned int k=4, max_iterations=50,lsh_window=6000,g_no=4,grids_no=4,container_sz=10,lsh_l=4,max_curve_sz=10;
   bool vector_input=true,stop_when_centers=true,brute_update_1=false;
   int complete_flag=0;// ine bool apla den iparxi atoi gia bool ke barieme na balo strtoul :'(
-  double center_tol=0.01,pad_number=99999.99999;
+  double center_tol=0.01,pad_number=99999.99999,grid_delta=0.01;
   my_curve::curve_tol=0.01;
   my_vector::vector_tol=0.01;
 
@@ -88,6 +88,7 @@ int main(int argc, char** argv){
       sscanf(str,"lsh_curves_pad_number: %lf",&pad_number);
       sscanf(str,"max_curve_size: %u",&max_curve_sz);
       sscanf(str,"brute_update_1: %u",&brute_update_1);
+      sscanf(str,"lsh_curves_grids_delta: %u",&grid_delta);
     }
   }
   else{
@@ -101,7 +102,7 @@ int main(int argc, char** argv){
   cout<<"starting parameters:"<<"\n\tnumber_of_clusters= "<<k<<"\n\tnumber_of_grids= "<<grids_no
   <<"\n\tlsh_l= "<<lsh_l<<"\n\tnumber_of_vector_hash_functions= "<<g_no<<"\n\tlsh_window= "<<lsh_window
   <<"\n\tvector_input= "<<vector_input<<"\n\tcontainer_sz= "<<container_sz<<"\n\tpad_number= "<<pad_number
-  <<"\n\tmax_curve_size= "<<max_curve_sz<<"\n\tbrute_update_1= "<<brute_update_1
+  <<"\n\tmax_curve_size= "<<max_curve_sz<<"\n\tgrid_delta= "<<grid_delta<<"\n\tbrute_update_1= "<<brute_update_1
   <<"\n\tstop_when_centers_dont_change= "<<stop_when_centers<<"\n\tcurve_tolerance= "<<my_curve::curve_tol
   <<"\n\tvector_tolerance= "<<my_vector::vector_tol<<"\n\tcenter_tolerance= "<<center_tol
   <<"\n\tmax_iterations= "<<max_iterations<<"\n\tinput_file= "<<input_file
@@ -109,12 +110,12 @@ int main(int argc, char** argv){
 
   if(vector_input)
     run_algorithms(k, max_iterations, lsh_window, g_no,
-                        grids_no, container_sz, lsh_l, max_curve_sz,
+                        grids_no, container_sz, lsh_l, max_curve_sz, grid_delta,
                         vector_input, stop_when_centers, brute_update_1, complete_flag, center_tol, pad_number,
                         input_file, out_file, options_file, read_vector_file, manhattan_distance);
   else
     run_algorithms(k, max_iterations, lsh_window, g_no,
-                        grids_no, container_sz, lsh_l, max_curve_sz,
+                        grids_no, container_sz, lsh_l, max_curve_sz, grid_delta,
                         vector_input, stop_when_centers, brute_update_1, complete_flag, center_tol, pad_number,
                         input_file, out_file, options_file, read_curve_file, Dtw);
 
@@ -124,7 +125,7 @@ int main(int argc, char** argv){
 
 template<class T>
 void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int lsh_window, unsigned int g_no,
-                    unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz,
+                    unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz, double grid_delta,
                     bool vector_input, bool stop_when_centers, bool brute_update_1, short int complete_flag, double center_tol, double pad_number,
                     char input_file[], char out_file[], char options_file[], list<T>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(T&,T&)){
@@ -150,8 +151,8 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
   if(vector_input)
     lsh_model=new lsh_vector(data_tmp->front().get_dimentions(),lsh_l,lsh_window,g_no,container_sz);
   else{
-    GridHash::delta = 0.009;
-    lsh_model=new lsh_curve(data_tmp->front().get_dimentions(),max_curve_sz,lsh_l,lsh_window,g_no,pad_number,container_sz);
+    GridHash::delta = grid_delta;
+    lsh_model=new lsh_curve(data_tmp->front().get_dimentions(),max_curve_sz,grids_no,lsh_window,g_no,pad_number,container_sz);
   }
 
   lsh_model->train(data_tmp);
@@ -278,10 +279,7 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
         auto duration = duration_cast<seconds>(stop - start);
 
         //calculate silhouette
-        // list<double> *a = vectorizeandsilhouette(clusters,centers,centers->size(),data->size(),manhattan_distance);
-        // a->clear();
-        // delete a;
-
+        list<double> *silhouette_vals = silhouette(clusters,centers,centers->size(),data->size(),distance_metric);
 
         ////--------------------------------------------print to out file
         if (fout.is_open()){
@@ -315,8 +313,9 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
           }
           fout<<"clustering_time: "<<duration.count()<<endl;
           fout<<"Silhouette: [ ";
-          //TODO print sihlouette
-          fout<<" ]\n";
+          for(auto i: *silhouette_vals)
+            fout<<i<<", ";
+          fout<<"]\n";
           if(complete_flag){
             for(unsigned int i=0;i<k;i++){
               fout<<"CLUSTER-"<<i+1<<"{ ";
@@ -349,6 +348,8 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
         for(unsigned int i=0;i<k;i++)
           clusters[i].clear();
         delete[] clusters;
+        silhouette_vals->clear();
+        delete silhouette_vals;
 
       }
     }

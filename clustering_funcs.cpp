@@ -111,7 +111,7 @@ T* rangebinarysearch(double target, pair<double,T*>* p, int r/*it is the length*
 template my_vector* rangebinarysearch(double, pair<double,my_vector*>*, int);
 template my_curve* rangebinarysearch(double, pair<double,my_curve*>*, int);
 
-//========================================================== initialization2================================================================
+//========================================================== initialization1================================================================
 template<class T>
 vector<T>* initialization1(vector <T>* data, unsigned int k){//8eli srand (time(NULL)); apo tin main na kalesti
   // --------------------------------------------------------------------initialization 1 ( nomizo afto lei)
@@ -603,20 +603,19 @@ template<> double vector_diff<my_curve>(vector<my_curve> *list1, vector<my_curve
 //========================================================== silhouette================================================================
 template<class T>
 list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k,unsigned int n,double(*distance_metric)(T&, T&)){
-  double *a= new double[n];
-  double *b= new double[n];
+  double a[n];
+  double b[n];
   unsigned int clustersize = 0;
   unsigned int i = 0;//this is for a[i]
   unsigned int r = 0;//this is for b[r]
-  double *clustercoef = new double[k];
+  double clustercoef[k];
   double **distarray;
   for (unsigned int x  = 0; x < n; x++) {
     b[x] = 0.0;
     a[x] = 0.0;
   }
-  for (unsigned int x  = 0; x < k; x++) {
+  for (unsigned int x  = 0; x < k; x++)
     clustercoef[x] = 0.0;
-  }
 
   //NearestC & 2ndNearestC
   for(unsigned int j=0; j<k; j++){//take a center and its cluster(they sould be sync)
@@ -627,9 +626,9 @@ list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k
     #endif
 
     //create lower triangular matrix
-    if (clustersize>1) {
-      distarray = new double* [clustersize-1];//create distance array:for cluster
-    }
+    if(clustersize<=1)
+      continue;
+    distarray = new double* [clustersize-1];//create distance array:for cluster
     for (unsigned int v = 0; v<clustersize-1; v++) {//z:0->clustersize-2 , lenght clustersize-1
       distarray[v]=new double[v+1];
       for (unsigned int l = 0; l < v+1; l++) {//fill all z blocks of mem with doubles
@@ -651,9 +650,8 @@ list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k
       i++;
     }
     //delete dist array
-    for (size_t l = 0; l < clustersize-1; l++) {
-      delete distarray[l];
-    }
+    for (size_t l = 0; l < clustersize-1; l++)
+      delete[] distarray[l];
     delete[] distarray;
     //--------------compute b[i] for each i in j-------------------------------
     for (unsigned int v = 0; v < clustersize; v++) {//take a vector of j cluster
@@ -692,29 +690,34 @@ list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k
   unsigned int sum = 0;
   for (unsigned int j = 0; j < k; j++) {
     clustersize = clusters[j].size();
+    if(clustersize==0){
+      clustercoef[j]=-2;
+      continue;
+    }
+    else if(clustersize==1){
+      clustercoef[j]=0;
+      continue;
+    }
     for (; i < sum+clustersize; i++) {
       // this is s(i)
-      if(clustersize != 1){
-        if(a[i]<b[i]){
-          #if DEBUG
-          std::cout << b[i]<<"+"<<a[i] << '\n';
-          std::cout << 1-(a[i]/b[i]) << '\n';
-          #endif
-          clustercoef[j]+=1-(a[i]/b[i]);
-        }
-        else if(a[i]>b[i])
-        {
-          #if DEBUG
-          std::cout << b[i]<<"-"<<a[i] << '\n';
-          std::cout << (b[i]/a[i])-1 << '\n';
-          #endif
-          clustercoef[j]+=(b[i]/a[i])-1;
-        }
-      }else
-        clustercoef[j]=0;
+      if(a[i]<b[i]){
+        #if DEBUG
+        std::cout << b[i]<<"+"<<a[i] << '\n';
+        std::cout << 1-(a[i]/b[i]) << '\n';
+        #endif
+        clustercoef[j]+=1-(a[i]/b[i]);
+      }
+      else if(a[i]>b[i])
+      {
+        #if DEBUG
+        std::cout << b[i]<<"-"<<a[i] << '\n';
+        std::cout << (b[i]/a[i])-1 << '\n';
+        #endif
+        clustercoef[j]+=(b[i]/a[i])-1;
+      }
     }
     sum+=clustersize;
-    clustercoef[j]=clustercoef[j]/(double)(clustersize);
+    clustercoef[j]/=(double)(clustersize);
   }
   #if DEBUG
     for (unsigned int x = 0; x < n; x++) {
@@ -731,13 +734,8 @@ list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k
   #endif
 
   list<double> *result = new list<double>;
-  for (unsigned int i = 0; i < k; i++) {
+  for (unsigned int i = 0; i < k; i++)
     result->push_back(clustercoef[i]);
-  }
-
-  // delete a;
-  // delete b;
-  // delete clustercoef;
 
   return result;
 }
