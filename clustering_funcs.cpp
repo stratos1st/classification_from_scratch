@@ -47,7 +47,6 @@ void updatedist(T* centroid, list<pair<double,T*>> &minD, double(*distance_metri
     // std::cout << "kkk" << '\n';
     // std::cout << (it->second)->dim << '\n';
     // std::cout << centroid->dim << '\n';
-    // std::cout << "kkk" << '\n';
     double new_dist = distance_metric(*centroid,*(it->second));
     if(new_dist< it->first)
       // to remember closest centroid requires tuple insert here
@@ -65,13 +64,14 @@ T* newcentroid(list<pair<double,T*>> &distr){
   //sum is used to create the probability array
   unsigned int i=0;
   double sum = 0;
+  prob_array[0].first = sum;//new
   //create the probability array from distribution array
   for(auto it=distr.begin(); it!=distr.end(); ++it){
     if(it->first != 0){//not a centroid maybe there should be a check in an other way
+      i++;//new moved from 75
       sum+=pow(it->first,2);
       prob_array[i].first = sum;
       prob_array[i].second = it->second;
-      i++;
     }
   }
 
@@ -81,7 +81,8 @@ T* newcentroid(list<pair<double,T*>> &distr){
   default_random_engine generator (seed_m.count());
   uniform_real_distribution<double> distribution(0,sum);//how to make it (]
   //select uniformy an element from (0,sum)
-  double rng=distribution(generator);
+  double rng;
+  while ((rng=distribution(generator)) == 0);
   return rangebinarysearch(rng,prob_array,i);
 }
 template my_vector* newcentroid(list<pair<double,my_vector*>> &);
@@ -91,6 +92,7 @@ template<class T>
 T* rangebinarysearch(double target, pair<double,T*>* p, int r/*it is the length*/){
   int l = 0;
   while (l <= r) {
+      //std::cout <<l<<" "<<(r-l)/2<< '\n';
         int m = l + (r - l) / 2;
         // Check if target is between p[m-1]<target<p[m]
         if (p[m-1].first < target  && target <= p[m].first){
@@ -100,7 +102,7 @@ T* rangebinarysearch(double target, pair<double,T*>* p, int r/*it is the length*
         }
         // If target is greater, ignore left half
         if (p[m].first < target)
-            l = m + 1;
+            l = m+1;//TODO
         // If target is smaller, ignore right half
         else
             r = m - 1;
