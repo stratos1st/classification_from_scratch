@@ -4,6 +4,51 @@ using namespace std;
 
 #define DEBUG 0
 
+//========================================================== initialization1================================================================
+template<class T>
+vector<T>* initialization1(vector <T>* data, unsigned int k){//8eli srand (time(NULL)); apo tin main na kalesti
+  // --------------------------------------------------------------------initialization 1 ( nomizo afto lei)
+  #if DEBUG
+  cout<<"initialization1\n";
+  #endif
+
+  //gia sxetika mikro k a3izi na kanoume afto
+  auto seed_t=chrono::system_clock::now().time_since_epoch();//initialise random
+  auto seed_m=chrono::duration_cast<chrono::nanoseconds>(seed_t);
+  default_random_engine generator(seed_m.count());
+  uniform_int_distribution<unsigned int> distribution(0,data->size()-1);
+  vector <T>* centers=new vector <T>;
+  unsigned int rand;
+  for(unsigned int i=0;i<k;i++){
+    rand=distribution(generator);
+    if(find(centers->begin(),centers->end(),data->at(rand))==centers->end())
+      centers->push_back(data->at(rand));
+    else
+      i--;//poustia den maresi alla barieme na to kano while
+  }
+
+  //gia megalo k se sxesi me ta data a3izi afto. genika troi poli mnimi
+  // vector<unsigned int> *random_numbers=new vector<unsigned int>;
+  // for(unsigned int i=0; i<data->size(); i++)
+  //     random_numbers->push_back(i);
+  // random_shuffle(random_numbers->begin(), random_numbers->end());
+  //
+  // vector <T>* centers=new vector <T>;
+  // for(unsigned int i=0;i<k;i++)
+  //   centers->push_back(data->at(random_numbers->at(i)));
+  // random_numbers->clear();
+  // delete random_numbers;
+
+  #if DEBUG
+  cout<<"centers\n";
+  for(auto i : *centers)
+    i.print_vec();
+  #endif
+  return centers;
+}
+template vector<my_vector>* initialization1(vector <my_vector>* data, unsigned int k);
+template vector<my_curve>* initialization1(vector <my_curve>* data, unsigned int k);
+
 //========================================================== initialization2================================================================
 template<class T>
 vector <T>* initialization2(vector<T> *vectorlist , unsigned int k, double(*distance_metric)(T&, T&)){
@@ -79,10 +124,16 @@ T* newcentroid(list<pair<double,T*>> &distr){
   auto seed_t=chrono::system_clock::now().time_since_epoch();
   auto seed_m=chrono::duration_cast<chrono::nanoseconds>(seed_t);
   default_random_engine generator (seed_m.count());
-  uniform_real_distribution<double> distribution(0,sum);//how to make it (]
+  uniform_real_distribution<double> distribution(0,nextafter(sum, numeric_limits<double>::max()));//FIXME des blaka pos ginete ;)
   //select uniformy an element from (0,sum)
   double rng;
-  while ((rng=distribution(generator)) == 0);
+  while ((rng=distribution(generator)) == 0);//FIXME TI STON POUTSO INE AFTO ?!
+  // rng=distribution(generator);
+  // if(rng==0){
+  //   T* tmp=prob_array[1].second;
+  //   delete[] prob_array;
+  //   return tmp;
+  // }
   return rangebinarysearch(rng,prob_array,i);
 }
 template my_vector* newcentroid(list<pair<double,my_vector*>> &);
@@ -112,33 +163,6 @@ T* rangebinarysearch(double target, pair<double,T*>* p, int r/*it is the length*
 }
 template my_vector* rangebinarysearch(double, pair<double,my_vector*>*, int);
 template my_curve* rangebinarysearch(double, pair<double,my_curve*>*, int);
-
-//========================================================== initialization1================================================================
-template<class T>
-vector<T>* initialization1(vector <T>* data, unsigned int k){//8eli srand (time(NULL)); apo tin main na kalesti
-  // --------------------------------------------------------------------initialization 1 ( nomizo afto lei)
-  #if DEBUG
-  cout<<"initialization1\n";
-  #endif
-
-  vector<int> random_numbers;
-  for(unsigned int i=0; i<data->size(); i++)
-      random_numbers.push_back(i);
-  random_shuffle(random_numbers.begin(), random_numbers.end());
-
-  vector <T>* centers=new vector <T>;
-  for(unsigned int i=0;i<k;i++)
-    centers->push_back(data->at(random_numbers[i]));
-
-  #if DEBUG
-  cout<<"centers\n";
-  for(auto i : *centers)
-    i.print_vec();
-  #endif
-  return centers;
-}
-template vector<my_vector>* initialization1(vector <my_vector>* data, unsigned int k);
-template vector<my_curve>* initialization1(vector <my_curve>* data, unsigned int k);
 
 //========================================================== assigment1================================================================
 template<class T>
@@ -490,11 +514,11 @@ template bool old_clusters_equal_new_clusters<>(vector<my_vector*> *old_clusters
 template bool old_clusters_equal_new_clusters<>(vector<my_curve*> *old_clusters, vector<my_curve*> *new_clusters, unsigned int k);
 
 template<class T>
-bool old_centers_equal_new_centers(vector<T> *old_centers,  vector<T> *new_centers, double tolerance){
-  return vector_diff(old_centers,new_centers)<tolerance;
+bool old_centers_equal_new_centers(vector<T> *old_centers,  vector<T> *new_centers, double tolerance, double(*distance_metric)(T&,T&)){
+  return vector_diff(old_centers,new_centers,distance_metric)<tolerance;
 }
-template bool old_centers_equal_new_centers<>(vector<my_vector> *old_centers,  vector<my_vector> *new_centers, double tolerance);
-template bool old_centers_equal_new_centers<>(vector<my_curve> *old_centers,  vector<my_curve> *new_centers, double tolerance);
+template bool old_centers_equal_new_centers<>(vector<my_vector> *old_centers,  vector<my_vector> *new_centers, double tolerance, double(*distance_metric)(my_vector&,my_vector&));
+template bool old_centers_equal_new_centers<>(vector<my_curve> *old_centers,  vector<my_curve> *new_centers, double tolerance, double(*distance_metric)(my_curve&,my_curve&));
 
 //========================================================== mean functions================================================================
 template<> my_vector get_mean<my_vector>(unsigned int dimentions, vector<my_vector*> &cluster){//DEN prepi to cluster na ine 0!!
@@ -526,18 +550,37 @@ template<> my_curve get_mean<my_curve>(unsigned int dimentions, vector<my_curve*
     average+=i->numofvectors;
   average/=cluster.size();//DEN mpori na ine 0!!
   unsigned int l=(unsigned int)floor(average);
-  //arxikopiise to C
-  my_curve *c;
-  for(my_curve* it: cluster)//FIXME perno to proto me length==l eno prepi na perno tixeo
-    if(it->numofvectors>=average){
-      c=new my_curve(l,dimentions);
-      unsigned int jj=rand()%(it->numofvectors-l+1);//ksekina apo mia 8esi
-      for(unsigned int j=0;j<l;j++)//ke pigene mexri jj+l
-        for(unsigned int i=0;i<dimentions;i++)//gia ka8e diastasi
-          c->vectors[j]->coordinates[i]=it->vectors[jj+j]->coordinates[i];//antegrapse sto C
-      break;
-    }
 
+  //arxikopiise to C
+  my_curve *c=new my_curve(l,dimentions);
+  auto seed_t=chrono::system_clock::now().time_since_epoch();//initialise random
+  auto seed_m=chrono::duration_cast<chrono::nanoseconds>(seed_t);
+  default_random_engine generator(seed_m.count());
+  //dikia mou arxikopiisi pou perni tin proti kampili me length>=l gia na min xani xrono
+  // for(my_curve* it: cluster)
+  //   if(it->numofvectors>=l){
+  //     uniform_int_distribution<unsigned int> distribution(0,it->numofvectors-l);
+  //     unsigned int jj=distribution(generator);//ksekina apo mia 8esi
+  //     for(unsigned int j=0;j<l;j++)//ke pigene mexri jj+l
+  //       for(unsigned int i=0;i<dimentions;i++)//gia ka8e diastasi
+  //         c->vectors[j]->coordinates[i]=it->vectors[jj+j]->coordinates[i];//antegrapse sto C
+  //     break;
+  //   }
+  vector<my_curve*> *tmp=new vector<my_curve*>;//!! new gt pezi na min xorai stin mnimi ke petai "error"
+  for(my_curve* it: cluster)//coppy all vectors with length>=l
+    if(it->numofvectors>=l)
+      tmp->push_back(it);
+  uniform_int_distribution<unsigned int> distribution1(0,tmp->size()-1);
+  unsigned int rand=distribution1(generator);//get a random curve
+  uniform_int_distribution<unsigned int> distribution2(0,tmp->at(rand)->numofvectors-l);
+  unsigned int jj=distribution2(generator);//start from random possition
+  for(unsigned int j=0;j<l;j++)//until jj+l
+    for(unsigned int i=0;i<dimentions;i++)//for every dimention
+      c->vectors[j]->coordinates[i]=tmp->at(rand)->vectors[jj+j]->coordinates[i];//coppy to C
+  tmp->clear();
+  delete tmp;
+
+  //start algorithm
   my_curve c2(l,dimentions);
   vector<my_vector*>* a=new vector<my_vector*>[l];
   list<pair<unsigned int,unsigned int>>* ipairs;
@@ -556,10 +599,8 @@ template<> my_curve get_mean<my_curve>(unsigned int dimentions, vector<my_curve*
       *c->vectors[i]=get_mean(dimentions,a[i]);
     if(c2==*c)
       break;
-    //delete c2;
   }
 
-  //delete c2;
   for(unsigned int i=0;i<l;i++)
     a[i].clear();
   delete[] a;
@@ -570,34 +611,19 @@ template<> my_curve get_mean<my_curve>(unsigned int dimentions, vector<my_curve*
 }
 
 //========================================================== helping functions================================================================
-template<> double vector_diff<my_vector>(vector<my_vector> *list1, vector<my_vector> *list2){
+template<class T>
+double vector_diff(vector<T> *list1, vector<T> *list2, double(*distance_metric)(T&,T&)){
   double maxx=0;
-  vector<my_vector>::iterator i=list1->begin();
+  auto i=list1->begin();
 
   if(list1->size()!=list2->size()){
-    cerr<<"\n\n!!error list_diff vectors !=size !!\n\n";
+    cerr<<"\n\n!!error list_diff !=size !!\n\n";
     exit(1);
   }
 
-  for(my_vector j : *list2){
-    maxx=max(manhattan_distance(*i,j),maxx);
+  for(T j : *list2){
+    maxx=max(distance_metric(*i,j),maxx);
     i++;
-  }
-  return maxx;
-}
-
-template<> double vector_diff<my_curve>(vector<my_curve> *list1, vector<my_curve> *list2){
-  double maxx=0;
-  vector<my_curve>::iterator i=list1->begin();
-
-  if(list1->size()!=list2->size()){
-    cerr<<"\n\n!!error list_diff curves !=size !!\n\n";
-    exit(1);
-  }
-
-  for(my_curve& j : *list2){
-    maxx=max(Dtw(*i,j),maxx);
-    ++i;
   }
   return maxx;
 }

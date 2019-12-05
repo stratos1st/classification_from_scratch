@@ -34,8 +34,8 @@ template<class T> std::vector<T>* update2(std::vector<T>* data, std::vector<T>* 
 template<class T> std::vector<T>* update1_brute(std::vector<T>* data, std::vector<T>* centers, std::vector<T*> *clusters,
                                     unsigned int k, double(*distance_metric)(T&, T&));
 template<class T> T get_mean(unsigned int dimentions, std::vector<T*> &cluster);
-template<class T> double vector_diff(std::vector<T> *vector1, std::vector<T> *vector2);
-template<class T> bool old_centers_equal_new_centers(std::vector<T> *old_centers,  std::vector<T> *new_centers, double tolerance);
+template<class T> double vector_diff(std::vector<T> *vector1, std::vector<T> *vector2, double(*distance_metric)(T&,T&));
+template<class T> bool old_centers_equal_new_centers(std::vector<T> *old_centers,  std::vector<T> *new_centers, double tolerance, double(*distance_metric)(T&,T&));
 template<class T> bool old_clusters_equal_new_clusters(std::vector<T*> *old_clusters, std::vector<T*> *new_clusters, unsigned int k);
 template<class T> std::list<double> * silhouette(std::vector<T*>* clusters,std::vector<T>* centers, unsigned int k,
                                         unsigned int n, double(*distance_metric)(T&, T&));

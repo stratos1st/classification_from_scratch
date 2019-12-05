@@ -1,0 +1,72 @@
+Algorithm: initialization2 + assigment2 + update2
+CLUSTER-1{ size: 339, centroid: [([-6.36056,53.3128,]),([-6.38234,53.3374,]),] }
+CLUSTER-2{ size: 1089, centroid: [([-6.26573,53.3605,]),([-6.25677,53.3433,]),] }
+CLUSTER-3{ size: 144, centroid: [([-6.19031,53.4148,]),([-6.16319,53.4225,]),([-6.17158,53.4157,]),] }
+CLUSTER-4{ size: 228, centroid: [([-6.14097,53.2687,]),([-6.13031,53.2291,]),] }
+clustering_time: 57
+Silhouette: [ 0.258833, 0.485471, 0.32054, 0.547895, ]
+
+
+Algorithm: initialization2 + assigment2 + update1
+CLUSTER-1{ size: 232, centroid: 4728 }
+CLUSTER-2{ size: 279, centroid: 5479 }
+CLUSTER-3{ size: 362, centroid: 7328 }
+CLUSTER-4{ size: 927, centroid: 3325 }
+clustering_time: 8
+Silhouette: [ 0.447596, 0.249168, 0.293055, 0.405674, ]
+
+
+Algorithm: initialization2 + assigment1 + update2
+CLUSTER-1{ size: 0, centroid: [([-6.35842,53.3362,]),([-6.38661,53.3294,]),([-6.387,53.3058,]),([-6.41161,53.3394,]),([-6.41124,53.3239,]),([-6.39355,53.323,]),] }
+CLUSTER-2{ size: 4, centroid: [([-6.29617,53.3608,]),([-6.33658,53.3736,]),([-6.33925,53.3744,]),([-6.33925,53.3744,]),([-6.36568,53.3839,]),([-6.36568,53.3839,]),([-6.21805,53.3055,]),] }
+CLUSTER-3{ size: 1415, centroid: [([-6.25065,53.3077,]),([-6.26935,53.3313,]),] }
+CLUSTER-4{ size: 381, centroid: [([-6.26716,53.3957,]),([-6.23015,53.4013,]),([-6.2447,53.3992,]),] }
+clustering_time: 87
+Silhouette: [ -2, 0.0653062, 0.120423, 0.21992, ]
+
+
+Algorithm: initialization2 + assigment1 + update1
+CLUSTER-1{ size: 1110, centroid: 2630 }
+CLUSTER-2{ size: 1, centroid: 668 }
+CLUSTER-3{ size: 249, centroid: 3867 }
+CLUSTER-4{ size: 440, centroid: 7010 }
+clustering_time: 14
+Silhouette: [ 0.446736, 0, 0.368786, 0.164358, ]
+
+
+Algorithm: initialization1 + assigment2 + update2
+CLUSTER-1{ size: 437, centroid: [([-6.16957,53.3227,]),([-6.15139,53.282,]),] }
+CLUSTER-2{ size: 491, centroid: [([-6.29632,53.3616,]),([-6.30133,53.3348,]),] }
+CLUSTER-3{ size: 680, centroid: [([-6.2543,53.3548,]),([-6.24994,53.3518,]),([-6.24682,53.3594,]),] }
+CLUSTER-4{ size: 192, centroid: [([-6.40811,53.3214,]),([-6.40813,53.3523,]),] }
+clustering_time: 59
+Silhouette: [ 0.188553, 0.150949, 0.408796, 0.346742, ]
+
+
+Algorithm: initialization1 + assigment2 + update1
+CLUSTER-1{ size: 754, centroid: 3200 }
+CLUSTER-2{ size: 424, centroid: 545 }
+CLUSTER-3{ size: 226, centroid: 4728 }
+CLUSTER-4{ size: 396, centroid: 7328 }
+clustering_time: 6
+Silhouette: [ 0.496038, 0.0333434, 0.554903, 0.207065, ]
+
+
+Algorithm: initialization1 + assigment1 + update2
+CLUSTER-1{ size: 534, centroid: [([-6.34629,53.3241,]),([-6.34363,53.349,]),] }
+CLUSTER-2{ size: 223, centroid: [([-6.14046,53.2679,]),([-6.1304,53.2276,]),] }
+CLUSTER-3{ size: 746, centroid: [([-6.25591,53.3428,]),([-6.24644,53.3345,]),([-6.25006,53.3371,]),] }
+CLUSTER-4{ size: 297, centroid: [([-6.23469,53.408,]),([-6.2159,53.4096,]),([-6.20183,53.4106,]),] }
+clustering_time: 14
+Silhouette: [ 0.125023, 0.548606, 0.569752, 0.114218, ]
+
+
+Algorithm: initialization1 + assigment1 + update1
+CLUSTER-1{ size: 290, centroid: 4728 }
+CLUSTER-2{ size: 201, centroid: 7095 }
+CLUSTER-3{ size: 832, centroid: 3325 }
+CLUSTER-4{ size: 477, centroid: 7328 }
+clustering_time: 5
+Silhouette: [ 0.445785, 0.25166, 0.442758, 0.199942, ]
+
+

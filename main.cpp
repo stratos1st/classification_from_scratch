@@ -41,7 +41,7 @@ int main(int argc, char** argv){
   bool vector_input=true,stop_when_centers=true,brute_update_1=false;
   int complete_flag=0;// ine bool apla den iparxi atoi gia bool ke barieme na balo strtoul :'(
   double center_tol=0.01,pad_number=99999.99999,grid_delta=0.01;
-  my_curve::curve_tol=0.01;
+  my_curve::curve_tol=0.001;
   my_vector::vector_tol=0.01;
 
   cout<<"Classification starting!!\n";
@@ -198,7 +198,7 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
         if(function_matrix[0])
           centers=initialization1(data,k);
         else
-          centers=initialization1(data,k);
+          centers=initialization2(data,k,distance_metric);
 
         //-----------------------------------------------------------------------assigment
         if(function_matrix[1])
@@ -228,7 +228,7 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
 
           // sin8iki break:: nea kentra konta sta palia
           if(stop_when_centers)
-            if(old_centers_equal_new_centers(old_centers,centers,center_tol))
+            if(old_centers_equal_new_centers(old_centers,centers,center_tol,distance_metric))
               break;
           //delete old_centers
           old_centers->clear();
@@ -250,12 +250,12 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
             old_clusters[i].clear();
           delete[] old_clusters;
 
+          iteration++;
           //sin8iki break:: max iterations reached
           if(max_iterations==1){
             cout<<"max iterations reached\n";
             break;
           }
-          iteration++;
         }
 
         //-----------------------------------------------------------------------success
@@ -324,7 +324,7 @@ void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int ls
               fout<<" }\n";
             }
           }
-          fout<<"\n\n";
+          fout<<"\n\n"<<flush;
         }
         else{
           cerr<<"\n\n!! problem writing to out file!!\n\n";
