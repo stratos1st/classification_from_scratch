@@ -764,10 +764,13 @@ list<double> * silhouette(vector<T*>* clusters,vector<T>* centers,unsigned int k
     }
   #endif
 
+  double avarage = 0.0;
   list<double> *result = new list<double>;
-  for (unsigned int i = 0; i < k; i++)
+  for (unsigned int i = 0; i < k; i++){
     result->push_back(clustercoef[i]);
-
+    avarage += clustercoef[i];
+  }
+  result->push_back(avarage/k);
   return result;
 }
 template list<double> * silhouette(vector<my_vector*>* clusters,vector<my_vector>* centers,unsigned int k,unsigned int n,double(*distance_metric)(my_vector&, my_vector&)=manhattan_distance);
