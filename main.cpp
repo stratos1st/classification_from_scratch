@@ -3,7 +3,6 @@
 #include <list>
 #include <vector>
 #include <stdlib.h>
-
 #include <unistd.h>
 #include <string.h>
 
@@ -36,7 +35,7 @@ template void run_algorithms<>(unsigned int k, unsigned int max_iterations, unsi
 
 int main(int argc, char** argv){
   srand (time(NULL));
-  char input_file[100]("./Input/DataVectors_5_500x100.csv"),out_file[100]("my.out"),options_file[100]("cluster.conf");
+  char input_file[150]("./Input/DataVectors_5_500x100.csv"),out_file[100]("my.out"),options_file[100]("cluster.conf");
   unsigned int k=4, max_iterations=50,lsh_window=6000,g_no=4,grids_no=4,container_sz=10,lsh_l=4,max_curve_sz=10;
   bool vector_input=true,stop_when_centers=true,brute_update_1=false;
   int complete_flag=0;// ine bool apla den iparxi atoi gia bool ke barieme na balo strtoul :'(
@@ -70,7 +69,7 @@ int main(int argc, char** argv){
 
 //-----------------------------------------------------read cluster.conf
   ifstream infile(options_file);
-  char str[100];
+  char str[200];
   if (infile.good()){
     while(infile.getline(str,100)){
       sscanf(str,"number_of_clusters: %u",&k);//FIXME does not take k
@@ -97,7 +96,6 @@ int main(int argc, char** argv){
   }
   infile.close();
 
-  k=5;
   //cout parameters
   cout<<"starting parameters:"<<"\n\tnumber_of_clusters= "<<k<<"\n\tnumber_of_grids= "<<grids_no
   <<"\n\tlsh_l= "<<lsh_l<<"\n\tnumber_of_vector_hash_functions= "<<g_no<<"\n\tlsh_window= "<<lsh_window
