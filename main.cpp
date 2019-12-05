@@ -19,17 +19,17 @@ using namespace std;
 template<class T>
 void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int lsh_window, unsigned int g_no,
                     unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz, double grid_delta,
-                    bool vector_input, bool stop_when_centers, bool brute_update_1, short int complete_flag, double center_tol, double pad_number,
+                    short unsigned int vector_input, short unsigned int stop_when_centers, short unsigned int brute_update_1, short int complete_flag, double center_tol, double pad_number,
                     char input_file[], char out_file[], char options_file[], list<T>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(T&,T&));
 template void run_algorithms<>(unsigned int k, unsigned int max_iterations, unsigned int lsh_window, unsigned int g_no,
                     unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz, double grid_delta,
-                    bool vector_input, bool stop_when_centers, bool brute_update_1, short int complete_flag, double center_tol, double pad_number,
+                    short unsigned int vector_input, short unsigned int stop_when_centers, short unsigned int brute_update_1, short int complete_flag, double center_tol, double pad_number,
                     char input_file[], char out_file[], char options_file[], list<my_vector>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(my_vector&,my_vector&));
 template void run_algorithms<>(unsigned int k, unsigned int max_iterations, unsigned int lsh_window, unsigned int g_no,
                     unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz, double grid_delta,
-                    bool vector_input, bool stop_when_centers, bool brute_update_1, short int complete_flag, double center_tol, double pad_number,
+                    short unsigned int vector_input, short unsigned int stop_when_centers, short unsigned int brute_update_1, short int complete_flag, double center_tol, double pad_number,
                     char input_file[], char out_file[], char options_file[], list<my_curve>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(my_curve&,my_curve&));
 
@@ -37,8 +37,8 @@ int main(int argc, char** argv){
   srand (time(NULL));
   char input_file[150]("./Input/DataVectors_5_500x100.csv"),out_file[100]("my.out"),options_file[100]("cluster.conf");
   unsigned int k=4, max_iterations=50,lsh_window=6000,g_no=4,grids_no=4,container_sz=10,lsh_l=4,max_curve_sz=10;
-  bool vector_input=true,stop_when_centers=true,brute_update_1=false;
-  int complete_flag=0;// ine bool apla den iparxi atoi gia bool ke barieme na balo strtoul :'(
+  short unsigned int vector_input=1,stop_when_centers=1,brute_update_1=0;//bool alla i scanf den mpori na diabasi bool
+  short int complete_flag=0;// ine bool apla den iparxi atoi gia bool ke barieme na balo strtoul :'(
   double center_tol=0.01,pad_number=99999.99999,grid_delta=0.01;
   my_curve::curve_tol=0.001;
   my_vector::vector_tol=0.01;
@@ -72,22 +72,22 @@ int main(int argc, char** argv){
   char str[200];
   if (infile.good()){
     while(infile.getline(str,100)){
-      sscanf(str,"number_of_clusters: %u",&k);//FIXME does not take k
+      sscanf(str,"number_of_clusters: %u",&k);
       sscanf(str,"number_of_grids: %u",&grids_no);
       sscanf(str,"number_of_vector_hash_tables: %u",&lsh_l);
       sscanf(str,"number_of_vector_hash_functions: %u",&g_no);
       sscanf(str,"lsh_window: %u",&lsh_window);
-      sscanf(str,"input_contains_vectors: %u",&vector_input);
+      sscanf(str,"input_contains_vectors: %hu",&vector_input);
       sscanf(str,"lsh_multimap_container_size: %u",&container_sz);
-      sscanf(str,"stop_when_centers_dont_change: %u",&stop_when_centers);
+      sscanf(str,"stop_when_centers_dont_change: %hu",&stop_when_centers);
       sscanf(str,"curve_tolerance: %lf",&my_curve::curve_tol);
       sscanf(str,"vector_tolerance: %lf",&my_vector::vector_tol);
       sscanf(str,"center_tolerance: %lf",&center_tol);
       sscanf(str,"max_iterations: %u",&max_iterations);
       sscanf(str,"lsh_curves_pad_number: %lf",&pad_number);
       sscanf(str,"max_curve_size: %u",&max_curve_sz);
-      sscanf(str,"brute_update_1: %u",&brute_update_1);
-      sscanf(str,"lsh_curves_grids_delta: %u",&grid_delta);
+      sscanf(str,"brute_update_1: %hu",&brute_update_1);
+      sscanf(str,"lsh_curves_grids_delta: %lf",&grid_delta);
     }
   }
   else{
@@ -124,7 +124,7 @@ int main(int argc, char** argv){
 template<class T>
 void run_algorithms(unsigned int k, unsigned int max_iterations, unsigned int lsh_window, unsigned int g_no,
                     unsigned int grids_no, unsigned int container_sz, unsigned int lsh_l, unsigned int max_curve_sz, double grid_delta,
-                    bool vector_input, bool stop_when_centers, bool brute_update_1, short int complete_flag, double center_tol, double pad_number,
+                    short unsigned int vector_input, short unsigned int stop_when_centers, short unsigned int brute_update_1, short int complete_flag, double center_tol, double pad_number,
                     char input_file[], char out_file[], char options_file[], list<T>* (*read_file)(string,unsigned int),
                     double (*distance_metric)(T&,T&)){
   short int function_matrix[3];
