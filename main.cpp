@@ -97,7 +97,7 @@ int main(int argc, char** argv){
   }
   infile.close();
 
-  k=4;
+  k=5;
   //cout parameters
   cout<<"starting parameters:"<<"\n\tnumber_of_clusters= "<<k<<"\n\tnumber_of_grids= "<<grids_no
   <<"\n\tlsh_l= "<<lsh_l<<"\n\tnumber_of_vector_hash_functions= "<<g_no<<"\n\tlsh_window= "<<lsh_window

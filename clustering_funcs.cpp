@@ -124,10 +124,12 @@ T* newcentroid(list<pair<double,T*>> &distr){
   auto seed_t=chrono::system_clock::now().time_since_epoch();
   auto seed_m=chrono::duration_cast<chrono::nanoseconds>(seed_t);
   default_random_engine generator (seed_m.count());
-  uniform_real_distribution<double> distribution(0,nextafter(sum, numeric_limits<double>::max()));//FIXME des blaka pos ginete ;)
-  //select uniformy an element from (0,sum)
+  //select uniformy an element from (0,sum]
   double rng;
-  while ((rng=distribution(generator)) == 0);//FIXME TI STON POUTSO INE AFTO ?!
+  uniform_real_distribution<double> distribution(nextafter(0, numeric_limits<double>::max()),nextafter(sum, numeric_limits<double>::max()));
+  rng=distribution(generator);
+  //i etsi ama 8eloume ke to 0
+  // uniform_real_distribution<double> distribution(0,nextafter(sum, numeric_limits<double>::max()));
   // rng=distribution(generator);
   // if(rng==0){
   //   T* tmp=prob_array[1].second;
@@ -153,7 +155,7 @@ T* rangebinarysearch(double target, pair<double,T*>* p, int r/*it is the length*
         }
         // If target is greater, ignore left half
         if (p[m].first < target)
-            l = m+1;//TODO
+            l = m+1;
         // If target is smaller, ignore right half
         else
             r = m - 1;
@@ -566,6 +568,7 @@ template<> my_curve get_mean<my_curve>(unsigned int dimentions, vector<my_curve*
   //         c->vectors[j]->coordinates[i]=it->vectors[jj+j]->coordinates[i];//antegrapse sto C
   //     break;
   //   }
+  //o tropos pou 8eloune
   vector<my_curve*> *tmp=new vector<my_curve*>;//!! new gt pezi na min xorai stin mnimi ke petai "error"
   for(my_curve* it: cluster)//coppy all vectors with length>=l
     if(it->numofvectors>=l)
